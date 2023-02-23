@@ -203,9 +203,13 @@ equals <- function(x,y) {
 #'y = randu$y
 #'
 #'xy_wkt = coord_to_text(x,y)
+<<<<<<< HEAD
 #'@export
 #'
 >>>>>>> fe572418c9225a10c75e2040afc2017422d05cce
+=======
+#'
+>>>>>>> origin/main
 coord_to_text <- function(x,y){
   stopifnot(length(x) == length(y))
   return(paste0("POINT (",x," ",y,")"))
