@@ -141,6 +141,52 @@ get_bb <- function(area, format = "rectangular"){
 }
 
 
+#########################
+# HELP FUNCTIONS FOR SETS
+#########################
+
+#'@title overlap
+#'@description
+#'Helper function to for set comparisons. outputs either the fraction (DICE similarity) of
+#'overlap in the sets. Or the number of common elements
+#'@param x,y a set (vector) of elements
+#'@param frac logical, TRUE to return the fraction of corresponding elements, FALSE to return the number
+#'@returns either a values between 0 and 1 for the similarity of the sets
+#'or an integer for the number of common elements
+#'
+#'@details
+#'Uses the base function intersect and union, which consider only the unique elements of a set.
+#'
+#'@examples
+#'x = c(1,2,3,4,5,55,5)
+#'y = c(5,4,3,2,1,1,1,1)
+#'overlap(x,y)
+#'overlap(x,y,frac = FALSE)
+#'
+#'@export
+overlap <- function(x,y, frac = TRUE){
+  ifelse(frac
+    ,return((base::intersect(x,y) |> length())/(base::union(x,y) |> length()))
+    ,return(base::intersect(x,y) |> length())
+    )
+}
 
 
-
+#'@title equals
+#'@description
+#'vectorized equal function to use in pipes. Useful for comparing values for summary statistics for example
+#'@param x,y two elements to compare
+#'
+#'@returns a vector of logical values,
+#' with each value corresponding to the comparison between the elements of the entered vectors.
+#'@examples
+#'x = c(1,2,3,4,5)
+#'y = c(1,3,2,4,5)
+#'
+#'x |> equals(y)
+#'
+#'@export
+equals <- function(x,y) {
+  stopifnot(length(x) == length(y))
+  return(x == y)
+}
