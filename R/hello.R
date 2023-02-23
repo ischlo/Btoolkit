@@ -190,3 +190,26 @@ equals <- function(x,y) {
   stopifnot(length(x) == length(y))
   return(x == y)
 }
+
+
+
+#'@title coord_to_text
+#'@description  Convert two variables meant to contain x and y coordinates as numeric into wkt
+#'@param  x,y numeric vectors
+#'@returns a vector with character values containing wkt POINT (...).
+#'@examples
+#'
+#'x = randu$x
+#'y = randu$y
+#'
+#'xy_wkt = coord_to_text(x,y)
+#'@export
+#'
+>>>>>>> fe572418c9225a10c75e2040afc2017422d05cce
+coord_to_text <- function(x,y){
+  stopifnot(length(x) == length(y))
+  return(paste0("POINT (",x," ",y,")"))
+}
+
+
+
