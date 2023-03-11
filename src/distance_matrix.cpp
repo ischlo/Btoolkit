@@ -6,19 +6,13 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins("cpp11")]]
 
+// https://en.wikipedia.org/wiki/Great-circle_distance check here for details on the subject.
 
 const double radius = 6371009;
 const double pi = 3.141593;
 
 // [[Rcpp::export]]
 arma::mat distance_mat_cpp(const arma::mat& coord1,const arma::mat& coord2){
-
-  // double radius = 6371010;
-  // double pi = 3.141593;
-  // arma::mat x_coord_mat = coord1.col(1)*coord2.col(1).as_row();
-  //
-  // arma::mat y_coord_mat = coord1.col(2)*coord2.col(2).as_row();
-  // arma::mat res(coord1.n_rows,coord2.n_rows);
 
   arma::mat res(coord1.n_rows,coord2.n_rows);
   arma::uword n = coord2.n_rows;
@@ -47,8 +41,6 @@ arma::mat gc_distance_mat_cpp(const arma::mat& coord1,const arma::mat& coord2) {
 
   arma::rowvec x1(n);
   arma::rowvec y1(n);
-
-
 
   for(arma::uword i = 0; i < coord1.n_rows;++i) {
 
