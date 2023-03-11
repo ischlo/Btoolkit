@@ -14,4 +14,8 @@ RoxygenNote: 7.2.3
 Imports: 
     data.table,
     osmdata,
+    Rcpp,
     sf
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo
