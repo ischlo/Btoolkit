@@ -55,7 +55,7 @@ fdistance <- function(coord1,coord2 = NULL,coords,one_to_one = TRUE) {
             ,any(is.null(coord2),ncol(coord2) >= 2)
             ,coords %in% c("projected", "unprojected")
             ,all(!is.na(coord1))
-            ,!is.null(coord2) & all(!is.na(coord2))
+            # ,!is.null(coord2) & all(!is.na(coord2))
             )
 
   if(one_to_one & !is.null(coord2) & nrow(coord1)!=nrow(coord2)) { stop("Dimensions of the parameters don't match")}
