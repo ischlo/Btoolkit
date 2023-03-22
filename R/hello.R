@@ -77,7 +77,6 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
   # the line is then built by connecting each point in the order of the rows
 
   if(!is.null(to)) {
-    # projection <- st_crs(from)
     if( any(c("sf","sfc") %in% class(to)) & any(c("sf","sfc") %in% class(from))) {
       from <- from |>
         st_as_sf() |>
@@ -87,30 +86,34 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
         st_coordinates()
     }
 
-    from_to <- cbind(from,to) |> t() |> as.data.table()
+    return(
+      apply(cbind(from,to)
+            ,MARGIN = 1
+            ,simplify = FALSE
+            ,FUN = function(x) {
+              matrix(data = x,ncol = 2, byrow = TRUE) |>
+                st_linestring(dim = "XY")}) |>
+        st_sfc(crs = crs)
+    )
 
-    new_lines <- from_to[,lapply(FUN = function(x) { x |>
-        matrix(ncol = 2, byrow = TRUE) |>
-        st_linestring(dim = "XY")})] |>
-      st_sfc(crs = crs)
+    # from_to <- cbind(from,to) |> t() |> data.table::as.data.table()
 
-      # lapply(from_to
-    #                     ,FUN = function(x) { x |>
-    #                         matrix(ncol = 2, byrow = TRUE) |>
-    #                         st_linestring(dim = "XY")
-    #                     }) |>
-    # st_sfc(crs = crs)
+    # return(lapply(from_to,FUN = function(x) {
+    #   matrix(data = x,ncol = 2, byrow = TRUE) |>
+    #     st_linestring(dim = "XY")}) |>
+    #     st_sfc(crs = crs))
 
   } else if (is.null(to)) {
     if("sf" %in% class(from)) {
       from <- from |>
         st_coordinates()
     }
-    from[,1:2] |>
-      as.matrix(ncol = 2, byrow = TRUE) |>
-      st_linestring(dim = "XY") |>
-      st_sfc(crs = crs)
-
+    return(
+      from[,1:2] |>
+        as.matrix(ncol = 2, byrow = TRUE) |>
+        st_linestring(dim = "XY") |>
+        st_sfc(crs = crs)
+    )
   }
 }
 
