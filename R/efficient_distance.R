@@ -62,7 +62,6 @@ fdistance <- function(coord1,coord2 = NULL,coords,one_to_one = TRUE) {
 
   coord1 <- as.matrix(coord1[,c(1,2)])
 
-
   if(!is.null(coord2)){ coord2 <<- as.matrix(coord2[,c(1,2)])}
 
   if (any(ncol(coord1) > 2, ncol(coord2) > 2)) {print("Using the first two colunms as coordinates")}
@@ -89,14 +88,12 @@ fdistance <- function(coord1,coord2 = NULL,coords,one_to_one = TRUE) {
     )
   }
 }
-
-
-
-
-dat <- data.table::data.table(x = c(1,2,3,4,NA)
-                              ,y = c("a","b","c","d", NA))
-dat_1 <- matrix(data = c(1,2,3,4,NA,6,7,8),nrow = 4)
-
-any(is.na(dat))
-
-any(is.na(dat_1))
+#
+#
+# dat <- data.table::data.table(x = c(1,2,3,4,NA)
+#                               ,y = c("a","b","c","d", NA))
+# dat_1 <- matrix(data = c(1,2,3,4,NA,6,7,8),nrow = 4)
+#
+# any(is.na(dat))
+#
+# any(is.na(dat_1))

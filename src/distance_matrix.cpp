@@ -50,8 +50,8 @@ arma::mat gc_distance_mat_cpp(const arma::mat& coord1,const arma::mat& coord2) {
     x1 = arma::rowvec(n,arma::fill::value(coord1(i,0)))*pi/180;
     y1 = arma::rowvec(n,arma::fill::value(coord1(i,1)))*pi/180;
 
-    arma::rowvec num = arma::sqrt(arma::square(arma::cos(y2)%arma::sin(x1-x2) + arma::square(arma::cos(y1)%sin(y2)) - arma::sin(y1)%arma::cos(y2)%arma::cos(x1-x2)));
-    arma::rowvec den = arma::sin(y1)%arma::sin(y2) + arma::cos(y1)%arma::cos(y2)%arma::cos(x1-x2);
+    arma::rowvec num = arma::sqrt(arma::square(arma::cos(y2)%arma::sin(arma::abs(x1-x2))) + arma::square(arma::cos(y1)%sin(y2) - arma::sin(y1)%arma::cos(y2)%arma::cos(arma::abs(x1-x2))));
+    arma::rowvec den = arma::sin(y1)%arma::sin(y2) + arma::cos(y1)%arma::cos(y2)%arma::cos(arma::abs(x1-x2));
     res.row(i) = radius*arma::atan(num/den);
   }
 
@@ -77,8 +77,8 @@ arma::vec gc_distance_pair_cpp(const arma::mat& coord1,const arma::mat& coord2) 
   x1 = coord1.col(0)*pi/180;
   y1 = coord1.col(1)*pi/180;
 
-  arma::vec num = arma::sqrt(arma::square(arma::cos(y2)%arma::sin(x1-x2)) + arma::square(arma::cos(y1)%arma::sin(y2) - arma::sin(y1)%arma::cos(y2)%arma::cos(x1-x2)));
-  arma::vec den = arma::sin(y1)%arma::sin(y2) + arma::cos(y1)%arma::cos(y2)%arma::cos(x1-x2);
+  arma::vec num = arma::sqrt(arma::square(arma::cos(y2)%arma::sin(arma::abs(x1-x2))) + arma::square(arma::cos(y1)%sin(y2) - arma::sin(y1)%arma::cos(y2)%arma::cos(arma::abs(x1-x2))));
+  arma::vec den = arma::sin(y1)%arma::sin(y2) + arma::cos(y1)%arma::cos(y2)%arma::cos(arma::abs(x1-x2));
 
   return radius*arma::atan(num/den);
 
