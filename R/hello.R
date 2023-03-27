@@ -84,7 +84,11 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
       to <- to |>
         st_as_sf() |>
         st_coordinates()
+      stopifnot(nrow(from)>=2
+                ,nrow(to) >= 2
+                ,nrow(to)==nrow(from))
     }
+
 
     return(
       apply(cbind(from,to)
@@ -96,18 +100,13 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
         st_sfc(crs = crs)
     )
 
-    # from_to <- cbind(from,to) |> t() |> data.table::as.data.table()
-
-    # return(lapply(from_to,FUN = function(x) {
-    #   matrix(data = x,ncol = 2, byrow = TRUE) |>
-    #     st_linestring(dim = "XY")}) |>
-    #     st_sfc(crs = crs))
-
   } else if (is.null(to)) {
     if("sf" %in% class(from)) {
       from <- from |>
         st_coordinates()
+      stopifnot(nrow(from)>=2)
     }
+
     return(
       from[,1:2] |>
         as.matrix(ncol = 2, byrow = TRUE) |>

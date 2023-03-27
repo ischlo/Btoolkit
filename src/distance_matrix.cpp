@@ -64,7 +64,7 @@ arma::mat gc_distance_mat_cpp(const arma::mat& coord1,const arma::mat& coord2) {
 arma::vec gc_distance_pair_cpp(const arma::mat& coord1,const arma::mat& coord2) {
 
   arma::uword n = coord2.n_rows;
-
+ 
   arma::vec x1(n);
   arma::vec y1(n);
 
