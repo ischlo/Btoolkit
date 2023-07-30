@@ -79,11 +79,11 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
   if(!is.null(to)) {
     if( any(c("sf","sfc") %in% class(to)) & any(c("sf","sfc") %in% class(from))) {
       from <- from |>
-        st_as_sf() |>
-        st_coordinates()
+        sf::st_as_sf() |>
+        sf::st_coordinates()
       to <- to |>
-        st_as_sf() |>
-        st_coordinates()
+        sf::st_as_sf() |>
+        sf::st_coordinates()
       stopifnot(nrow(from)>=2
                 ,nrow(to) >= 2
                 ,nrow(to)==nrow(from))
@@ -96,22 +96,22 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
             ,simplify = FALSE
             ,FUN = function(x) {
               matrix(data = x,ncol = 2, byrow = TRUE) |>
-                st_linestring(dim = "XY")}) |>
-        st_sfc(crs = crs)
+                sf::st_linestring(dim = "XY")}) |>
+        sf::st_sfc(crs = crs)
     )
 
   } else if (is.null(to)) {
     if("sf" %in% class(from)) {
       from <- from |>
-        st_coordinates()
+        sf::st_coordinates()
       stopifnot(nrow(from)>=2)
     }
 
     return(
       from[,1:2] |>
         as.matrix(ncol = 2, byrow = TRUE) |>
-        st_linestring(dim = "XY") |>
-        st_sfc(crs = crs)
+        sf::st_linestring(dim = "XY") |>
+        sf::st_sfc(crs = crs)
     )
   }
 }
@@ -210,6 +210,79 @@ coord_to_text <- function(x,y){
   stopifnot(length(x) == length(y))
   return(paste0("POINT (",x," ",y,")"))
 }
+
+
+#'@title samp_dt
+#'@description  sample a data table or data frame. Can be used in pipes or on its own.
+#'@param dt a data.table or data.frame
+#'@param weight either a number less that 1 for a fraction of the dt,
+#'or a positive integer for a specific number of rows
+#'
+#'@returns a sample of the data set
+#'@examples
+#'
+#'data("cars")
+#'
+#'cars_half <- samp_dt(cars, .5)
+#'cars_10 <- samp_dt(cars,10)
+#'
+#'
+#'
+#'@export
+samp_dt <- function(dt, weight) {
+  # data.table as the dt parameter
+  # weight: either a number less that 1 for a fraction of the dt,
+  # or a positive integer for a specific number of rows
+
+  stopifnot(any(inherits(dt,"data.frame"),inherits(dt,"data.table"))
+            ,weight > 0
+            ,weight<nrow(dt))
+
+  if(weight < 1) {
+    n <- as.integer(nrow(dt)*weight)
+    return(dt[sample(1:nrow(dt),n),])
+  } else if (weight >= 1) {
+    return(dt[sample(1:nrow(dt),as.integer(weight)),])
+  }
+}
+
+
+#'@title index_html
+#'@description
+#'Render a markdown file into a html file called index.html
+#', for efficient creation of html pages directly publishable to github pages for example.
+#'@example rstudioapi::getSourceEditorContext()$path
+#'@returns it is a void function that produces as output the html
+#' file in the same directory in which the rmarkdown file is.
+#'@export
+index_html <- function() {
+  cat(rstudioapi::getSourceEditorContext()$path)
+  rmarkdown::render(input = rstudioapi::getSourceEditorContext()$path,output_file="index.html")
+}
+
+#'
+#'@title get_lcc
+#'@description returns the largest connected component of a table of edges and conserves all the attributes. Uses igraph.
+#'examples
+#'@param ways a data table containing at least 2 columns 'from' and 'to'.
+#'@param graph_mode igraph parameter, 'weak' or 'strong' connected component
+#'@returns a data table that has the same structure as the input, but with removed rows that don't belong to the lcc.
+get_lcc <- function(ways, graph_mode = "weak") {
+
+  stopifnot("data.table" %in% class(ways), "from" %in% colnames(ways), "to" %in% colnames(ways))
+  ways <- data.table::as.data.table(ways)
+  igraph_ways <- igraph::graph_from_data_frame(ways[,.(from,to)],directed = FALSE)
+
+  if(igraph_ways |> igraph::is_connected(mode = graph_mode)) {stop("Already a connected graph")}
+
+  nodes_comp <- igraph::components(igraph_ways,mode = graph_mode)
+
+  vert_ids <- igraph::V(igraph_ways)[nodes_comp$membership == which.max(nodes_comp$csize)]$name
+
+  return(ways[from %in% vert_ids & to %in% vert_ids,])
+}
+
+
 
 
 
