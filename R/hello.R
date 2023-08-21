@@ -283,6 +283,33 @@ get_lcc <- function(ways, graph_mode = "weak") {
 }
 
 
-
+#'@title nlapply
+#'@description
+#'This builds up on mapply and allows to access the name of the list element from within the function that you apply to the data.
+#'Sometimes you might want to differentiate the operation that you do to the data based on the name of the
+#'list element you apply this to and this function facilitates just that.
+#'Simply provide a function in which the first parameter is supposed to be the name of the list element.
+#'@param l a list, preferably named, otherwise it's the same as regular lapply.
+#'@param fun a function of the type function(n,l) where n will be the name of the variable.
+#'@examples
+#'# example code
+#'my_list <- list('to_sum'=c(1,2,3,4,5)
+#'                ,'to_multiply'=c(1,2,3,4,5))
+#'nlapply(my_list,fun=function(n,x){
+#'if(n=='to_sum') sum(x)
+#'else if(n=='to_mult') prod(x)})
+#'
+nlapply <- function(l,fun,...){
+  switch(is.null(names(l))
+         ,{
+           print('The list is not named, using regular lapply')
+           lapply(l,FUN = fun,...)
+         }
+         ,{
+           print('Using named lapply')
+           n <- names(l)
+           mapply(n,l, FUN = fun,...)
+         })
+}
 
 
