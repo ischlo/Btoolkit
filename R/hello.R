@@ -251,7 +251,7 @@ samp_dt <- function(dt, weight) {
 #'@description
 #'Render a markdown file into a html file called index.html
 #', for efficient creation of html pages directly publishable to github pages for example.
-#'@example rstudioapi::getSourceEditorContext()$path
+#'@example # rstudioapi::getSourceEditorContext()$path
 #'@returns it is a void function that produces as output the html
 #' file in the same directory in which the rmarkdown file is.
 #'@export
@@ -267,6 +267,7 @@ index_html <- function() {
 #'@param ways a data table containing at least 2 columns 'from' and 'to'.
 #'@param graph_mode igraph parameter, 'weak' or 'strong' connected component
 #'@returns a data table that has the same structure as the input, but with removed rows that don't belong to the lcc.
+#'@export
 get_lcc <- function(ways, graph_mode = "weak") {
 
   stopifnot("data.table" %in% class(ways), "from" %in% colnames(ways), "to" %in% colnames(ways))
@@ -284,6 +285,7 @@ get_lcc <- function(ways, graph_mode = "weak") {
 
 
 #'@title nlapply
+#'@name nlapply
 #'@description
 #'This builds up on mapply and allows to access the name of the list element from within the function that you apply to the data.
 #'Sometimes you might want to differentiate the operation that you do to the data based on the name of the
@@ -291,14 +293,16 @@ get_lcc <- function(ways, graph_mode = "weak") {
 #'Simply provide a function in which the first parameter is supposed to be the name of the list element.
 #'@param l a list, preferably named, otherwise it's the same as regular lapply.
 #'@param fun a function of the type function(n,l) where n will be the name of the variable.
+#'@param ... other arguments passed to lapply
 #'@examples
 #'# example code
 #'my_list <- list('to_sum'=c(1,2,3,4,5)
 #'                ,'to_multiply'=c(1,2,3,4,5))
-#'nlapply(my_list,fun=function(n,x){
-#'if(n=='to_sum') sum(x)
-#'else if(n=='to_mult') prod(x)})
 #'
+#'res <- nlapply(my_list
+#'               ,fun=function(n,x){ if(n=='to_sum') sum(x)
+#'                                   else if(n=='to_mult') prod(x)})
+#'@export
 nlapply <- function(l,fun,...){
   switch(is.null(names(l))
          ,{
@@ -311,5 +315,48 @@ nlapply <- function(l,fun,...){
            mapply(n,l, FUN = fun,...)
          })
 }
+
+
+#'@title as_geo
+#'@name as_geo
+#'@description
+#'This function bridges the packages sf and data.table to build easier workflows using both.
+#'It is meant to turn a data.table into a sf data.frame using a column that stores wkt in the data.table.
+#'It is also designed to work whithin the j part of a data.table workflow
+#', taking a character vector of wkt and turning it into a sf geometry column.
+#'One especially relevant use case is when a data table has multiple columns that can potentially be used as geometries,
+#'for example you might have polygons representing shapes, but also their centroids all in one table.
+#'@param dt usually a data.table, but a data.frame works to.
+#'@param colname the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.
+#'@param crs the crs to convert into
+#'@param ... Other otional argunats to pass to sf::st_as_sf
+#'@returns a sf data.frame with the same number of columns as the input and with the specified column used a geometry.
+#'@examples
+#' y <- rnorm(100,mean = 51,sd=1)
+#' x <- rnorm(100)
+#' p <- paste0('POINT ( ',x,' ',y,')')
+#' dt <- data.table::data.table(id = seq_along(p),geom=p)
+#' dt |> as_geo('geom')
+#' dt[,'geom'] |> as_geo()
+#' dt[,as_geo(geom)]
+#'@export
+as_geo <- function(dt,colname='geometry', crs = 4326,...){
+
+  if(inherits(dt,'character')){
+    return(tryCatch(dt |> data.table::as.data.table() |> sf::st_as_sf(wkt=1,crs=crs,...)
+                    ,error=function(e) cat('Failed, provide a vector containing wkt geometries.')
+                    ,warning = function(w) print(w)))
+  }
+  # if the provided data set contains just one column, don't bother requiring colname.
+  if(ncol(dt)==1) return(dt |> sf::st_as_sf(wkt=1,crs=crs,...))
+
+  if(is.character(colname)) return(dt |> sf::st_as_sf(wkt=which(colnames(dt)==colname),crs=crs,...))
+  else if (is.numeric(colname)) return(dt |> sf::st_as_sf(wkt=colname,crs=crs,...))
+}
+
+
+
+
+
 
 

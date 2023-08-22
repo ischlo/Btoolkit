@@ -10,6 +10,8 @@ nlapply(l, fun, ...)
 \item{l}{a list, preferably named, otherwise it's the same as regular lapply.}
 
 \item{fun}{a function of the type function(n,l) where n will be the name of the variable.}
+
+\item{...}{other arguments passed to lapply}
 }
 \description{
 This builds up on mapply and allows to access the name of the list element from within the function that you apply to the data.
@@ -21,8 +23,8 @@ Simply provide a function in which the first parameter is supposed to be the nam
 # example code
 my_list <- list('to_sum'=c(1,2,3,4,5)
                ,'to_multiply'=c(1,2,3,4,5))
-nlapply(my_list,fun=function(n,x){
-if(n=='to_sum') sum(x)
-else if(n=='to_mult') prod(x)})
 
+res <- nlapply(my_list
+              ,fun=function(n,x){ if(n=='to_sum') sum(x)
+                                  else if(n=='to_mult') prod(x)})
 }
