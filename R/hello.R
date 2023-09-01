@@ -77,7 +77,7 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
   # the line is then built by connecting each point in the order of the rows
 
   if(!is.null(to)) {
-    if( any(c("sf","sfc") %in% class(to)) & any(c("sf","sfc") %in% class(from))) {
+    if(any(c("sf","sfc") %in% class(to)) & any(c("sf","sfc") %in% class(from))) {
       from <- from |>
         sf::st_as_sf() |>
         sf::st_coordinates()
@@ -196,7 +196,7 @@ equals <- function(x,y) {
 
 
 #'@title coord_to_text
-#'@description  Convert two variables meant to contain x and y coordinates as numeric into wkt
+#'@description  Convert two variables meant to contain x and y coordinates as numeric into wkt POINTS
 #'@param  x,y numeric vectors
 #'@returns a vector with character values containing wkt POINT (...).
 #'@examples
@@ -303,16 +303,16 @@ get_lcc <- function(ways, graph_mode = "weak") {
 #'               ,fun=function(n,x){ if(n=='to_sum') sum(x)
 #'                                   else if(n=='to_mult') prod(x)})
 #'@export
-nlapply <- function(l,fun,...){
+nlapply <- function(l,fun,simplify=FALSE,...){
   switch(is.null(names(l))
          ,{
            print('The list is not named, using regular lapply')
-           lapply(l,FUN = fun,...)
+           return(lapply(l,FUN = fun,...))
          }
          ,{
            print('Using named lapply')
            n <- names(l)
-           mapply(n,l, FUN = fun,...)
+           return(mapply(n,l, FUN = fun,SIMPLIFY = simplify,...))
          })
 }
 
@@ -353,10 +353,4 @@ as_geo <- function(dt,colname='geometry', crs = 4326,...){
   if(is.character(colname)) return(dt |> sf::st_as_sf(wkt=which(colnames(dt)==colname),crs=crs,...))
   else if (is.numeric(colname)) return(dt |> sf::st_as_sf(wkt=colname,crs=crs,...))
 }
-
-
-
-
-
-
 
