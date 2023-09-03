@@ -293,6 +293,7 @@ get_lcc <- function(ways, graph_mode = "weak") {
 #'Simply provide a function in which the first parameter is supposed to be the name of the list element.
 #'@param l a list, preferably named, otherwise it's the same as regular lapply.
 #'@param fun a function of the type function(n,l) where n will be the name of the variable.
+#'@param simplify passed to maaply, should results be simplified.
 #'@param ... other arguments passed to lapply
 #'@examples
 #'# example code
@@ -304,16 +305,14 @@ get_lcc <- function(ways, graph_mode = "weak") {
 #'                                   else if(n=='to_mult') prod(x)})
 #'@export
 nlapply <- function(l,fun,simplify=FALSE,...){
-  switch(is.null(names(l))
-         ,{
+  if (is.null(names(l))) {
            print('The list is not named, using regular lapply')
            return(lapply(l,FUN = fun,...))
-         }
-         ,{
+         }else {
            print('Using named lapply')
            n <- names(l)
            return(mapply(n,l, FUN = fun,SIMPLIFY = simplify,...))
-         })
+         }
 }
 
 

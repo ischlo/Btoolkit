@@ -4,12 +4,14 @@
 \alias{nlapply}
 \title{nlapply}
 \usage{
-nlapply(l, fun, ...)
+nlapply(l, fun, simplify = FALSE, ...)
 }
 \arguments{
 \item{l}{a list, preferably named, otherwise it's the same as regular lapply.}
 
 \item{fun}{a function of the type function(n,l) where n will be the name of the variable.}
+
+\item{simplify}{passed to maaply, should results be simplified.}
 
 \item{...}{other arguments passed to lapply}
 }

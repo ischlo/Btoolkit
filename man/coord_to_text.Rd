@@ -13,7 +13,7 @@ coord_to_text(x, y)
 a vector with character values containing wkt POINT (...).
 }
 \description{
-Convert two variables meant to contain x and y coordinates as numeric into wkt
+Convert two variables meant to contain x and y coordinates as numeric into wkt POINTS
 }
 \examples{
 
