@@ -25,6 +25,4 @@ data("cars")
 cars_half <- samp_dt(cars, .5)
 cars_10 <- samp_dt(cars,10)
 
-
-
 }

@@ -1,7 +1,7 @@
 #'@title
 #'make_poly
 #'@description
-#'Function to make a polygon out of 4 numbers representing the limits
+#'Function to make an sf polygon out of 4 numbers representing the limits
 #'@param limits 4 number in the order: x_min,y_min,x_max,y_max
 #'@param crs_ the crs code
 #'@returns
@@ -226,8 +226,6 @@ coord_to_text <- function(x,y){
 #'cars_half <- samp_dt(cars, .5)
 #'cars_10 <- samp_dt(cars,10)
 #'
-#'
-#'
 #'@export
 samp_dt <- function(dt, weight) {
   # data.table as the dt parameter
@@ -258,29 +256,6 @@ samp_dt <- function(dt, weight) {
 index_html <- function() {
   cat(rstudioapi::getSourceEditorContext()$path)
   rmarkdown::render(input = rstudioapi::getSourceEditorContext()$path,output_file="index.html")
-}
-
-#'
-#'@title get_lcc
-#'@description returns the largest connected component of a table of edges and conserves all the attributes. Uses igraph.
-#'examples
-#'@param ways a data table containing at least 2 columns 'from' and 'to'.
-#'@param graph_mode igraph parameter, 'weak' or 'strong' connected component
-#'@returns a data table that has the same structure as the input, but with removed rows that don't belong to the lcc.
-#'@export
-get_lcc <- function(ways, graph_mode = "weak") {
-
-  stopifnot("data.table" %in% class(ways), "from" %in% colnames(ways), "to" %in% colnames(ways))
-  ways <- data.table::as.data.table(ways)
-  igraph_ways <- igraph::graph_from_data_frame(ways[,.(from,to)],directed = FALSE)
-
-  if(igraph_ways |> igraph::is_connected(mode = graph_mode)) {stop("Already a connected graph")}
-
-  nodes_comp <- igraph::components(igraph_ways,mode = graph_mode)
-
-  vert_ids <- igraph::V(igraph_ways)[nodes_comp$membership == which.max(nodes_comp$csize)]$name
-
-  return(ways[from %in% vert_ids & to %in% vert_ids,])
 }
 
 

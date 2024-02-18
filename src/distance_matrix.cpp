@@ -2,7 +2,8 @@
 #include <cstdlib>
 
 // [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::plugins("cpp11")]]
+// ("cpp11")[[]]
+// Rcpp::plugins
 
 // https://en.wikipedia.org/wiki/Great-circle_distance check here for details on the subject.
 
@@ -64,7 +65,7 @@ arma::mat gc_distance_mat_cpp(const arma::mat& coord1,const arma::mat& coord2) {
 arma::vec gc_distance_pair_cpp(const arma::mat& coord1,const arma::mat& coord2) {
 
   arma::uword n = coord2.n_rows;
- 
+
   arma::vec x1(n);
   arma::vec y1(n);
 

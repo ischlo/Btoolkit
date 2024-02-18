@@ -67,25 +67,25 @@ fdistance <- function(coord1,coord2 = NULL,projected=FALSE,one_to_one = FALSE,..
   if(inherits(coord1,c('data.frame','data.table'))){coord1 <- as.matrix(coord1)}
   if(inherits(coord2,c('data.frame','data.table'))){coord2 <- as.matrix(coord2)}
 
-  if(inherits(coord1,'sf')) coord1 <- sf::st_geometry(coord1) |> st_coordinates()
-  if(inherits(coord2,'sf')) coord1 <- sf::st_geometry(coord2) |> st_coordinates()
+  if(inherits(coord1,'sf')) coord1 <- sf::st_geometry(coord1) |> sf::st_coordinates()
+  if(inherits(coord2,'sf')) coord1 <- sf::st_geometry(coord2) |> sf::st_coordinates()
 
   if(inherits(coord1[[1]],'character')) {
     cat('detected WKT in coord1.\n')
     if(!missing(...)){
-      coord1 <- sf::st_as_sf(data.table(wkt=coord1),...,wkt=1) |> sf::st_coordinates()
+      coord1 <- sf::st_as_sf(data.table::data.table(wkt=coord1),...,wkt=1) |> sf::st_coordinates()
     }else{
       warning('no crs provided, assuming 4326')
-      coord1 <- sf::st_as_sf(data.table(wkt=coord1),crs=4326,wkt=1) |> sf::st_coordinates()
+      coord1 <- sf::st_as_sf(data.table::data.table(wkt=coord1),crs=4326,wkt=1) |> sf::st_coordinates()
     }
   }
   if(inherits(coord2[[1]],'character')) {
     cat('detected WKT in coord2.\n')
     if(!missing(...)){
-      coord2 <- sf::st_as_sf(data.table(wkt=coord2),...,wkt=1) |> sf::st_coordinates()
+      coord2 <- sf::st_as_sf(data.table::data.table(wkt=coord2),...,wkt=1) |> sf::st_coordinates()
     }else{
       warning('no crs provided, assuming 4326')
-      coord2 <- sf::st_as_sf(data.table(wkt=coord2),crs=4326,wkt=1) |> sf::st_coordinates()
+      coord2 <- sf::st_as_sf(data.table::data.table(wkt=coord2),crs=4326,wkt=1) |> sf::st_coordinates()
     }
   }
 

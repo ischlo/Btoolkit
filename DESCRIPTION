@@ -18,7 +18,11 @@ Imports:
     Rcpp,
     sf,
     rmarkdown,
-    igraph
+    igraph,
+    cppRouting,
+    terra,
+    h3,
+    leaflet
 LinkingTo: 
     Rcpp,
     RcppArmadillo
