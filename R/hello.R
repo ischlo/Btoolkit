@@ -328,3 +328,49 @@ as_geo <- function(dt,colname='geometry', crs = 4326,...){
   else if (is.numeric(colname)) return(dt |> sf::st_as_sf(wkt=colname,crs=crs,...))
 }
 
+
+
+#### Loading and manipulating OSM data with osmdata ####
+
+
+# facilitated osm query with osmdata
+getOSMdata <- function(bb,k, val = "all",timeout = 600,memsize = 3073741824,...) {
+
+  if (all(val != "all")) {
+    osmdata::opq(bbox = bb,timeout = timeout,memsize = memsize,...) |>
+      osmdata::add_osm_feature(key = k
+                               ,value = val
+                               ,key_exact = TRUE
+                               ,value_exact = TRUE
+                               ,match_case = TRUE) |>
+      osmdata::osmdata_sf()
+  } else {
+    osmdata::opq(bbox = bb,timeout = timeout,memsize = memsize,...) |>
+      osmdata::add_osm_feature(key = k
+                               #,value = val
+                               ,key_exact = TRUE
+                               #,value_exact = TRUE
+                               #,match_case = TRUE
+      ) |>
+      osmdata::osmdata_sf()
+  }
+}
+
+
+osm_group_points <- function(d,k,kofinterest = NULL) {
+
+  if(is.null(kofinterest)) {
+    df <- dplyr::bind_rows(d$osm_points |> dplyr::filter(sf::st_is_valid(geometry))
+                           ,d$osm_polygons |> dplyr::filter(sf::st_is_valid(geometry)) |> sf::st_centroid())
+  } else {
+    df <- dplyr::bind_rows(filter(d$osm_points,.data[[k]] %in% kofinterest) |> dplyr::filter(sf::st_is_valid(geometry))
+                           ,filter(d$osm_polygons,.data[[k]] %in% kofinterest) |> dplyr::filter(sf::st_is_valid(geometry)) |> sf::st_centroid())
+  }
+
+  return(df[c("osm_id","name",k,"geometry")] |> dplyr::rename("amenity" = k) |>
+           sf::st_as_sf())
+
+}
+
+
+
