@@ -332,7 +332,22 @@ as_geo <- function(dt,colname='geometry', crs = 4326,...){
 
 #### Loading and manipulating OSM data with osmdata ####
 
-
+#'@title getOSMdata
+#'@name getOSMdata
+#'@description
+#'
+#'@param bb
+#'@param k
+#'@param val
+#'@param timeout
+#'@param memsize
+#'@param ...
+#'@returns
+#'@examples
+#'
+#' a <- 1
+#'
+#'@export
 # facilitated osm query with osmdata
 getOSMdata <- function(bb,k, val = "all",timeout = 600,memsize = 3073741824,...) {
 
@@ -356,7 +371,19 @@ getOSMdata <- function(bb,k, val = "all",timeout = 600,memsize = 3073741824,...)
   }
 }
 
-
+#'@title osm_group_points
+#'@name osm_group_points
+#'@description
+#'
+#'@param d
+#'@param k
+#'@param kofinterest
+#'@returns
+#' a <- 1
+#'@examples
+#'
+#'
+#'@export
 osm_group_points <- function(d,k,kofinterest = NULL) {
 
   if(is.null(kofinterest)) {

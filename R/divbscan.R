@@ -2,7 +2,7 @@
 
 
 
-entropy_iso <- function(d, iso, cor_num = 1){
+entropy_iso <- function(d, iso,by_='amenity',cor_num = 1){
 
   # make sure that the isochrones data is perfectly alligned by row with the data.
   int <- sf::st_intersects(iso, d)
@@ -27,10 +27,11 @@ entropy_iso <- function(d, iso, cor_num = 1){
     if(all(i!=-1)){
       counted <- d[i,.N,by=by_]
       p <- counted$N/sum(counted$N)
-      e <- c(-sum(p*log(p)),sum(counted$N))
+      ubiq <- length(unique(counted[[by_]]))
+      e <- c('entropy'=-sum(p*log(p)),'size'=sum(counted$N),'ubiq'=ubiq)
       return(e)
     } else {
-      return(c(-1,0))
+      return(c('entropy'=NA,'size'=0,'ubiq'=0))
     }
 
   })
