@@ -335,17 +335,23 @@ as_geo <- function(dt,colname='geometry', crs = 4326,...){
 #'@title getOSMdata
 #'@name getOSMdata
 #'@description
+#'Facilitated function for working getting data from OSM with osmdata.
 #'
-#'@param bb
-#'@param k
-#'@param val
-#'@param timeout
-#'@param memsize
-#'@param ...
+#'@param bb a bbox
+#'@param k OSM keys
+#'@param val OSM values corresponding to the keys
+#'@param timeout timeout for downloading. increase this value for bigger data sets.
+#'@param memsize the maximum memory to dedicate to the process. increase this value for bigger data sets.
+#'@param ... other parameters to the osmdata::opq function.
 #'@returns
+#'a list of lists containing the results from the overpass query in different spatial formats.
 #'@examples
 #'
-#' a <- 1
+#'bb <- osmdata::get_bb('marseille')
+#'key <- 'amenity'
+#'val <- 'place_of_worship'
+#'
+#'res <- getOSMdata(bb=bb,k=key,val=val)
 #'
 #'@export
 # facilitated osm query with osmdata
@@ -375,13 +381,22 @@ getOSMdata <- function(bb,k, val = "all",timeout = 600,memsize = 3073741824,...)
 #'@name osm_group_points
 #'@description
 #'
-#'@param d
-#'@param k
-#'@param kofinterest
+#'Function for grouping the outputs of getOSMdata into a single spatial data frame of points. Useful for extracting polygonal or point like features. Polygons are transformed into their centroids.
+#'
+#'@param d a list of lists as returned by getOSMdata
+#'@param k the keys of interest
+#'@param kofinterest values of interest for the key k
 #'@returns
-#' a <- 1
+#'a spatial data frame with points.
 #'@examples
 #'
+#'bb <- osmdata::get_bb('marseille')
+#'key <- 'amenity'
+#'val <- 'place_of_worship'
+#'
+#'res <- getOSMdata(bb=bb,k=key,val=val)
+#'
+#'res <- osm_group_points(res,k='amenity',kofinterest='place_of_worship')
 #'
 #'@export
 osm_group_points <- function(d,k,kofinterest = NULL) {
