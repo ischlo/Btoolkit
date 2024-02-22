@@ -1,7 +1,5 @@
 # divbscan
 
-
-
 entropy_iso <- function(d, iso,by_='amenity',cor_num = 1){
 
   # make sure that the isochrones data is perfectly alligned by row with the data.
@@ -15,12 +13,6 @@ entropy_iso <- function(d, iso,by_='amenity',cor_num = 1){
   # put the index of the amenity itself in the intersection
   int[bad_values] <- -1 #bad_values
 
-  # registerDoParallel(cor_num)
-  # entropy <- foreach(i = 1:nrow(d), .combine=c) %dopar% {
-  #   counted <- d[int[[i]],] |> dplyr::group_by(amenity) |> dplyr::count()
-  #   p <- counted$n/sum(counted$n)
-  #   e <- c(-sum(p*log(p)),sum(counted$n))
-  # }
   d <- data.table::as.data.table(d)
 
   entropy <- mclapply(int, mc.cores = cor_num, FUN = \(i) {
@@ -35,8 +27,7 @@ entropy_iso <- function(d, iso,by_='amenity',cor_num = 1){
     }
 
   })
-  # entropy
-  # stopImplicitCluster()
+
   data.frame(matrix(entropy |> unlist(), ncol = 2, byrow = TRUE)) |> rename("entropy" = "X1", "size" = "X2")
 }
 
