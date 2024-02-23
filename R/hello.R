@@ -347,11 +347,11 @@ as_geo <- function(dt,colname='geometry', crs = 4326,...){
 #'a list of lists containing the results from the overpass query in different spatial formats.
 #'@examples
 #'
-#'bb <- osmdata::get_bb('marseille')
+#bb <- osmdata::getbb('marseille')
 #'key <- 'amenity'
 #'val <- 'place_of_worship'
 #'
-#'res <- getOSMdata(bb=bb,k=key,val=val)
+#res <- getOSMdata(bb=bb,k=key,val=val)
 #'
 #'@export
 # facilitated osm query with osmdata
@@ -390,26 +390,29 @@ getOSMdata <- function(bb,k, val = "all",timeout = 600,memsize = 3073741824,...)
 #'a spatial data frame with points.
 #'@examples
 #'
-#'bb <- osmdata::get_bb('marseille')
+#bb <- osmdata::getbb('marseille')
 #'key <- 'amenity'
 #'val <- 'place_of_worship'
 #'
-#'res <- getOSMdata(bb=bb,k=key,val=val)
+#res <- getOSMdata(bb=bb,k=key,val=val)
 #'
-#'res <- osm_group_points(res,k='amenity',kofinterest='place_of_worship')
+#res <- osm_group_points(res,k='amenity',kofinterest='place_of_worship')
 #'
 #'@export
 osm_group_points <- function(d,k,kofinterest = NULL) {
 
   if(is.null(kofinterest)) {
-    df <- dplyr::bind_rows(d$osm_points |> dplyr::filter(sf::st_is_valid(geometry))
-                           ,d$osm_polygons |> dplyr::filter(sf::st_is_valid(geometry)) |> sf::st_centroid())
+    df <- rbind(d$osm_points[sf::st_is_valid(d$osm_points$geometry),]
+                ,d$osm_polygons[sf::st_is_valid(d$osm_polygons$geometry),] |> sf::st_centroid())
   } else {
-    df <- dplyr::bind_rows(filter(d$osm_points,.data[[k]] %in% kofinterest) |> dplyr::filter(sf::st_is_valid(geometry))
-                           ,filter(d$osm_polygons,.data[[k]] %in% kofinterest) |> dplyr::filter(sf::st_is_valid(geometry)) |> sf::st_centroid())
+    data_points <- d$osm_points[d$osm_points[[k]] %in% kofinterest,]
+    data_poly <- d$osm_polygons[d$osm_polygons[[k]] %in% kofinterest,]
+
+    df <- rbind(data_points[sf::st_is_valid(data_points$geometry),]
+                ,data_poly[sf::st_is_valid(data_poly$geometry),] |> sf::st_centroid())
   }
 
-  return(df[c("osm_id","name",k,"geometry")] |> dplyr::rename("amenity" = k) |>
+  return(df[c("osm_id","name",k,"geometry")] |> `names<-`(c("osm_id","name","amenity","geometry")) |>
            sf::st_as_sf())
 
 }

@@ -21,12 +21,9 @@ Function for grouping the outputs of getOSMdata into a single spatial data frame
 }
 \examples{
 
-bb <- osmdata::get_bb('marseille')
 key <- 'amenity'
 val <- 'place_of_worship'
 
-res <- getOSMdata(bb=bb,k=key,val=val)
 
-res <- osm_group_points(res,k='amenity',kofinterest='place_of_worship')
 
 }

@@ -1,6 +1,21 @@
 # divbscan
 
-entropy_iso <- function(d, iso,by_='amenity',cor_num = 1){
+#'@title
+#'entropy_iso
+#'@description
+#'Computes diversity measure for a set of categorical features contained whithin polygons provided in iso
+#'@param d a data set of spatial features with a categorical variable
+#'@param iso the accessibility areas for each location of interest, isodists for example.
+#'@param by_ the variable containnig the category
+#'@param cor_num how many cores to use for greater speed.
+#'@returns a data frame with columns containing the various variables computed, including the entropy, the size, the ubiquity of the cluster
+#@example
+#'
+#'
+#'
+#'
+#'@export
+entropy_iso <- function(d, iso, by_='amenity',cor_num = 1){
 
   # make sure that the isochrones data is perfectly alligned by row with the data.
   int <- sf::st_intersects(iso, d)

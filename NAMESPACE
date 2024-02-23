@@ -3,6 +3,7 @@
 export(add_edge)
 export(as_geo)
 export(coord_to_text)
+export(entropy_iso)
 export(equals)
 export(factor_to_character)
 export(fdistance)

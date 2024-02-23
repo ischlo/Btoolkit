@@ -27,10 +27,8 @@ Facilitated function for working getting data from OSM with osmdata.
 }
 \examples{
 
-bb <- osmdata::get_bb('marseille')
 key <- 'amenity'
 val <- 'place_of_worship'
 
-res <- getOSMdata(bb=bb,k=key,val=val)
 
 }
