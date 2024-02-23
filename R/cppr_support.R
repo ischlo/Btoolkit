@@ -63,7 +63,80 @@ nearest_nodes <- \(graph,point,crs_ = 4326){
 
     return(coords_[which.min(terra::distance(as.matrix(coords_[,.(x,y)]),sf::st_coordinates(point),lonlat=TRUE)),])
 
+}
+
+
+in_range <- \(r1,r2) {
+  if ((r1[1] <= r2[2]) && (r1[1] >= r2[1]) && (r1[2] <= r2[2]) && (r1[2] >= r2[1])) TRUE
+  else FALSE
+}
+
+
+#'@title
+#'fnearest node
+#'@description
+#'Get the nearest network node to a point with projected coordinates extremely fast thanks to RANN
+#'@param graph the graph of interest
+#'@param pts the point(s) of interest, as a sf object, or a vector with c(lat,lon) structure.
+#'@param nn how many nearest neighbour points to return for each pts.
+#'@param local_crs if the coordinates are lonlat, provide a code for a local crs projection. Look up here: https://epsg.io/about
+#'@param ... other parameters to RANN::nn2()
+#'@returns
+#'The corresponding nearest nodes in graph to each pts.
+#'@examples
+#'
+#'#Getting the graph for the french city of lille and a sample of 500 amenities
+#'#from OSM provided with the package.
+#' data("lille_amenities")
+#' data("lille_graph")
+#'
+#' loc_crs <- 27561
+#'
+#' res <- cppr$fnearest_nodes(lille_graph,lille_amenities,local_crs = loc_crs)
+#'
+#' lille_graph$coords[res[[1]],]
+#'
+#'
+#'@export
+fnearest_nodes <- \(graph,pts,nn=1,local_crs = NULL,...){
+
+  if(!is.null(local_crs)){
+    node_coords <- graph$coords[,c(2,3)] |>
+      sf::st_as_sf(coords=c(1,2),crs=4326) |>
+      sf::st_transform(local_crs) |>
+      sf::st_coordinates()
+    if(inherits(pts,c('sf','sfc'))){
+      pts <- pts |>
+        sf::st_transform(local_crs) |>
+        sf::st_coordinates()
+
+    } else if (inherits(pts,'matrix')) {
+      pts <- pts |>
+        sf::st_as_sf(coords=c(1,2),crs=4326) |>
+        sf::st_transform(local_crs) |>
+        sf::st_coordinates()
+    }
+
+  } else {
+
+    if (in_range(range(graph$coords[,2]),c(-180,180)) | in_range(graph$coords[,3],c(-90,90))) warning('Suspected lonlat provided without local_crs\n','Function might fail.')
+
+    node_coords <- graph$coords
+    if(inherits(pts,c('sf','sfc'))){
+      pts <- pts |>
+        sf::st_coordinates()
+
+    } else if (inherits(pts,'matrix')) {
+      pts <- pts |>
+        sf::st_as_sf(coords=c(1,2),crs=4326) |>
+        sf::st_coordinates()
+    }
   }
+
+  res <- RANN::nn2(data=node_coords,query = pts,k=nn,...)
+
+  return(res)
+}
 
 # function(graph, points_data = NULL,return_id = TRUE,...) {
 #   if(is.null(points_data)) stop("Provide sf spatial points to link to the network.")
@@ -251,7 +324,11 @@ cppr$make_network <- make_network
 
 cppr$nearest_nodes <- nearest_nodes
 
+cppr$fnearest_nodes <- fnearest_nodes
+
 cppr$get_lcc <- get_lcc
+
+usethis::use_data(cppr,overwrite = TRUE)
 
 #'
 #' cppr list of functions.
@@ -263,3 +340,24 @@ cppr$get_lcc <- get_lcc
 #'@source Ivann Schlosser, 2023
 "cppr"
 
+
+
+#'
+#' cppRouting graph for examples.
+#'
+#'@format ## lille_graph
+#' A graph constructed from OSM data with the cppRouting package.
+#'
+#'@source Ivann Schlosser, 2023
+"lille_graph"
+
+
+
+#'
+#' lille amenities
+#'
+#'@format ## lille_amenities
+#'A sample of OSM amenities from the city of Lille
+#'
+#'@source Ivann Schlosser, 2023
+"lille_amenities"

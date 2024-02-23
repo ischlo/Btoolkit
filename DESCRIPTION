@@ -22,7 +22,8 @@ Imports:
     cppRouting,
     terra,
     h3,
-    leaflet
+    leaflet,
+    RANN
 LinkingTo: 
     Rcpp,
     RcppArmadillo
