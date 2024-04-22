@@ -193,7 +193,7 @@ get_lcc <- function(ways, graph_mode = "weak") {
             ,all(c("from","to") %in% colnames(ways))
             )
 
-  igraph_ways <- igraph::graph_from_data_frame(ways[c('from','to')],directed = FALSE)
+  igraph_ways <- igraph::graph_from_data_frame(ways[,c('from','to')],directed = FALSE)
 
   if(igraph_ways |> igraph::is_connected(mode = graph_mode)) {
     cat('Graph is connected')
@@ -202,7 +202,8 @@ get_lcc <- function(ways, graph_mode = "weak") {
 
   nodes_comp <- igraph::components(igraph_ways,mode = graph_mode)
 
-  vert_ids <- igraph::V(igraph_ways)[nodes_comp$membership == which.max(nodes_comp$csize)]$title
+  vert_ids <- igraph::V(igraph_ways)[nodes_comp$membership == which.max(nodes_comp$csize)] |>
+    attr('names')
 
   return(ways[from %in% vert_ids & to %in% vert_ids,])
 }
@@ -237,11 +238,15 @@ make_network <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
     nodes <- nodes |>
     data.table::as.data.table()
 
-    if(nrow(nodes)==0) nodes <- NULL
+    if(nrow(nodes)==0) {
+      nodes <- NULL
+    } else {
+      nodes <- nodes[!duplicated(id),]
+    }
 
     })
 
-  edges <- get_lcc(edges)
+  edges <- get_lcc(edges[,c(1,2,3)])
 
   graph <- edges[,c(1,2,3)]
 
@@ -388,3 +393,24 @@ usethis::use_data(cppr,overwrite = TRUE)
 #'
 #'@source Ivann Schlosser, 2023
 "lille_amenities"
+
+
+#'
+#'
+#'
+#'@format ## nodes
+#' A data frame of nodes to be used with the data set of segments to test the cppr related functions
+#'
+#'@source Ivann Schlosser, 2023
+"nodes"
+
+
+#'
+#'
+#'
+#'@format ## segments
+#' A data frame of segments to be used with the data set of nodes to test the cppr related functions
+#'
+#'@source Ivann Schlosser, 2023
+"segments"
+

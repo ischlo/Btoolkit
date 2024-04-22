@@ -8,3 +8,9 @@ NULL
 #' @importFrom Rcpp sourceCpp
 ## usethis namespace: end
 NULL
+
+
+## usethis namespace: start
+#' @import data.table
+## usethis namespace: end
+NULL
