@@ -23,6 +23,13 @@ The corresponding nearest nodes in graph to each pts.
 \description{
 Get the nearest network node to a point with projected coordinates extremely fast thanks to RANN
 }
+\details{
+The main workflow expected is to have all your data in crs=4326
+so when you use this function, you pass a local crs and the function converts automatically.
+if no local crs is given, it is assumed that all the data is already projected.
+It is difficult to verify if data is in the right crs when it's not an sf object,
+so the precautions are mainly left to the user, with a minor test being done by the function.
+}
 \examples{
 
 #Getting the graph for the french city of lille and a sample of 500 amenities

@@ -4,21 +4,25 @@
 \alias{get_bb}
 \title{get_bb}
 \usage{
-get_bb(area, format = "rectangular")
+get_bb(area, form = c("rectangular", "polygon"))
 }
 \arguments{
 \item{area}{the name of an area to look for}
 
-\item{format}{either 'rectangular' or 'polygon'}
+\item{form}{either 'rectangular' or 'polygon'}
 }
 \value{
-The bbox of the place as either a rectangle or a more complex polygon shape
+The bbox of the place as either a rectangle or a more complex polygon shape in text format
 }
 \description{
 Function returning the bbox of a place from OpenStreetMap. It is a slightly more user friendly version
 of the same function from the osmdata package.
+It is helpful when working with a remote postgis or other spatial db as it generates WKT output.
 }
 \examples{
 library(sf)
+library(osmdata)
+
 london_bb <- get_bb("London, UK")
+
 }

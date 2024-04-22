@@ -4,14 +4,16 @@
 \alias{as_geo}
 \title{as_geo}
 \usage{
-as_geo(dt, colname = "geometry", crs = 4326, ...)
+as_geo(dt, colname = "geom_wkt", crs = 4326, remove = FALSE, ...)
 }
 \arguments{
-\item{dt}{usually a data.table, but a data.frame works to.}
+\item{dt}{a data.frame, data.table, tibble, sf data.frame ...}
 
-\item{colname}{the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.}
+\item{colname}{character the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.}
 
-\item{crs}{the crs to convert into}
+\item{crs}{integer the crs to convert into}
+
+\item{remove}{boolean. whether to remove or not the column that will transformed into geometry.}
 
 \item{...}{Other otional argunats to pass to sf::st_as_sf}
 }

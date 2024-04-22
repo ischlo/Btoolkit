@@ -1,7 +1,7 @@
 #'@title
 #'make_poly
 #'@description
-#'Function to make an sf polygon out of 4 numbers representing the limits
+#'Function to make an sf polygon out of 4 values representing the boundaries
 #'@param limits 4 number in the order: x_min,y_min,x_max,y_max
 #'@param crs_ the crs code
 #'@returns
@@ -10,10 +10,14 @@
 #'
 #'london_bb <- osmdata::getbb("London, UK", limit = 1) |> make_poly()
 #'
-#'
-#'
 #'@export
 make_poly <- function(limits,crs_ = 4326){ # x_min,y_min,x_max,y_max,
+
+  if(limits[1]>limits[3]) stop('There might be errors in the order of limits.')
+  if(limits[2]>limits[4]) stop('There might be errors in the order of limits.')
+
+  if(!is.numeric(limits)) stop('PLese provide numeric values to limits')
+  if(!is.numeric(crs_)) stop('Please provide a valid crs code')
 
   sf::st_polygon(x = list(
     matrix(data = c(limits[1],limits[2]
@@ -43,12 +47,14 @@ make_poly <- function(limits,crs_ = 4326){ # x_min,y_min,x_max,y_max,
 #' class(dt_char$letters)
 #'@export
 factor_to_character <- function(dat) {
+
+  stopifnot(inherits(dat,'data.frame'))
+
   dat <- dat |> as.data.frame()
   x <- sapply(dat, is.factor)
   dat[x] <- lapply(dat[x], as.character)
   dat
 }
-
 
 
 #'@title
@@ -60,35 +66,45 @@ factor_to_character <- function(dat) {
 #'the line is then built by connecting each point in the order of the rows
 #'@param from,to a matrix with 2 columns containing X and Y coordinates
 #'@param crs integer number, the code of the reference system
-#'@param by_element not used in current implementation
 #'
 #'@returns a sf object with linestrings
-#@example
+#'@example
 #'
+#'from <- matrix(data=c(-0.13619,51.52203
+#'                      ,-0.13064,51.52275)
+#'               ,ncol=2
+#'               ,by_row=TRUE)
 #'
-#'
+#'work_to_lunch <- get_lines(from=from)
+#'tmap::tmap_mode('view)
+#'tmap::qtm(work_to_lunch)
 #'
 #'@export
-get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
+get_lines <- function(from, to = NULL,crs = 4326) {
   # check that from and to are points as well
   # this function is intended to turn points into lines
   # of the to variable is null, then it is assumed that from
   # is a matrix where each row contains coordinates of a points
   # the line is then built by connecting each point in the order of the rows
 
+  stopifnot(is.numeric(crs))
+
   if(!is.null(to)) {
     if(any(c("sf","sfc") %in% class(to)) & any(c("sf","sfc") %in% class(from))) {
+
       from <- from |>
         sf::st_as_sf() |>
         sf::st_coordinates()
       to <- to |>
         sf::st_as_sf() |>
         sf::st_coordinates()
-      stopifnot(nrow(from)>=2
-                ,nrow(to) >= 2
-                ,nrow(to)==nrow(from))
     }
 
+    stopifnot(inherits(from,c('matrix','array'))
+              ,inherits(to,c('matrix','array'))
+              ,nrow(from)>=1
+              ,nrow(to) >=1
+              ,nrow(to)==nrow(from))
 
     return(
       apply(cbind(from,to)
@@ -101,15 +117,17 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
     )
 
   } else if (is.null(to)) {
-    if("sf" %in% class(from)) {
+    if(any(c("sf","sfc") %in% class(from))) {
       from <- from |>
         sf::st_coordinates()
-      stopifnot(nrow(from)>=2)
     }
+
+    stopifnot(nrow(from)>=2
+              ,inherits(from,c('matrix','array','data.frame')))
 
     return(
       from[,1:2] |>
-        as.matrix(ncol = 2, byrow = TRUE) |>
+        as.matrix() |>
         sf::st_linestring(dim = "XY") |>
         sf::st_sfc(crs = crs)
     )
@@ -122,27 +140,35 @@ get_lines <- function(from, to = NULL,crs = 4326, by_element = TRUE) {
 #'@description
 #'Function returning the bbox of a place from OpenStreetMap. It is a slightly more user friendly version
 #' of the same function from the osmdata package.
+#' It is helpful when working with a remote postgis or other spatial db as it generates WKT output.
 #'@param area the name of an area to look for
-#'@param format either 'rectangular' or 'polygon'
+#'@param form either 'rectangular' or 'polygon'
 #'
 #'@returns
-#'The bbox of the place as either a rectangle or a more complex polygon shape
+#'The bbox of the place as either a rectangle or a more complex polygon shape in text format
 #'@examples
 #'library(sf)
+#'library(osmdata)
+#'
 #' london_bb <- get_bb("London, UK")
+#'
 #'@export
-get_bb <- function(area, format = "rectangular"){
-  if(format == "polygon"){
-    osmdata::getbb(area,format_out = "sf_polygon",limit = 1) |> sf::st_geometry() |> sf::st_as_text()
-  } else if (format == "rectangular"){
-    osmdata::getbb(area, limit = 1) |> make_poly() |> sf::st_geometry() |> sf::st_as_text()
-  } else {
-    stop("provide the output format as either 'rectangular' or 'polygon'.")
-  }
+get_bb <- function(area, form = c("rectangular","polygon")){
+  form <- match.arg(form)
+  switch(form
+         ,polygon=osmdata::getbb(area,format_out = "sf_polygon",limit = 1) |> sf::st_geometry() |> sf::st_as_text()
+         ,rectangular=osmdata::getbb(area, limit = 1) |> make_poly() |> sf::st_geometry() |> sf::st_as_text()
+  )
+  #
+  # if(form == "polygon"){
+  #   osmdata::getbb(area,format_out = "sf_polygon",limit = 1) |> sf::st_geometry() |> sf::st_as_text()
+  # } else if (form == "rectangular"){
+  #   osmdata::getbb(area, limit = 1) |> make_poly() |> sf::st_geometry() |> sf::st_as_text()
+  # } else {
+  #   stop("provide the output format as either 'rectangular' or 'polygon'.")
+  # }
 
 }
-
-
 #########################
 # HELP FUNCTIONS FOR SETS
 #########################
@@ -189,7 +215,9 @@ overlap <- function(x,y, frac = TRUE){
 #'
 #'@export
 equals <- function(x,y) {
-  stopifnot(length(x) == length(y))
+  stopifnot(length(x) == length(y)
+            ,is.vector(x)
+            ,is.vector(y))
   return(x == y)
 }
 
@@ -207,7 +235,11 @@ equals <- function(x,y) {
 #'xy_wkt = coord_to_text(x,y)
 #'@export
 coord_to_text <- function(x,y){
-  stopifnot(length(x) == length(y))
+  stopifnot('both parameters must have the same length' = length(x) == length(y)
+            ,'can not coerce to numeric' = !is.na(as.numeric(x))
+            ,'can not coerce to numeric' = !is.na(as.numeric(y))
+            )
+
   return(paste0("POINT (",x," ",y,")"))
 }
 
@@ -232,15 +264,15 @@ samp_dt <- function(dt, weight) {
   # weight: either a number less that 1 for a fraction of the dt,
   # or a positive integer for a specific number of rows
 
-  stopifnot(any(inherits(dt,"data.frame"),inherits(dt,"data.table"))
+  stopifnot(inherits(dt,c("data.frame",'data.table','tbl'))
             ,weight > 0
             ,weight<nrow(dt))
 
   if(weight < 1) {
-    n <- as.integer(nrow(dt)*weight)
+    n <- floor(nrow(dt)*weight)
     return(dt[sample(1:nrow(dt),n),])
   } else if (weight >= 1) {
-    return(dt[sample(1:nrow(dt),as.integer(weight)),])
+    return(dt[sample(1:nrow(dt),floor(weight)),])
   }
 }
 
@@ -281,12 +313,12 @@ index_html <- function() {
 #'@export
 nlapply <- function(l,fun,simplify=FALSE,...){
   if (is.null(names(l))) {
-           print('The list is not named, using regular lapply')
-           return(lapply(l,FUN = fun,...))
+           warning('The list is not named, using regular lapply')
+           return(parallel::mclapply(l,FUN = fun,...))
          }else {
-           print('Using named lapply')
+           # print('Using named lapply')
            n <- names(l)
-           return(mapply(n,l, FUN = fun,SIMPLIFY = simplify,...))
+           return(parallel::mcmapply(n,l, FUN = fun,SIMPLIFY = simplify,...))
          }
 }
 
@@ -300,9 +332,10 @@ nlapply <- function(l,fun,simplify=FALSE,...){
 #', taking a character vector of wkt and turning it into a sf geometry column.
 #'One especially relevant use case is when a data table has multiple columns that can potentially be used as geometries,
 #'for example you might have polygons representing shapes, but also their centroids all in one table.
-#'@param dt usually a data.table, but a data.frame works to.
-#'@param colname the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.
-#'@param crs the crs to convert into
+#'@param dt a data.frame, data.table, tibble, sf data.frame ...
+#'@param colname character the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.
+#'@param crs integer the crs to convert into
+#'@param remove boolean. whether to remove or not the column that will transformed into geometry.
 #'@param ... Other otional argunats to pass to sf::st_as_sf
 #'@returns a sf data.frame with the same number of columns as the input and with the specified column used a geometry.
 #'@examples
@@ -314,108 +347,45 @@ nlapply <- function(l,fun,simplify=FALSE,...){
 #' dt[,'geom'] |> as_geo()
 #' dt[,as_geo(geom)]
 #'@export
-as_geo <- function(dt,colname='geometry', crs = 4326,...){
+as_geo <- function(dt,colname='geom_wkt', crs = 4326,remove=FALSE,...){
 
   if(inherits(dt,'character')){
-    return(tryCatch(dt |> data.table::as.data.table() |> sf::st_as_sf(wkt=1,crs=crs,...)
-                    ,error=function(e) cat('Failed, provide a vector containing wkt geometries.')
-                    ,warning = function(w) print(w)))
+    # message('provided a character vector, expected to contain WKT')
+    return(tryCatch(dt |> data.table::as.data.table() |> sf::st_as_sf(wkt=1,crs=crs,remove=remove,...)
+                    ,error=function(e) cat('Failed, provide a vector containing wkt geometries.\n')
+                    ,warning = function(w) cat(w,'\n')))
   }
+
   # if the provided data set contains just one column, don't bother requiring colname.
-  if(ncol(dt)==1) return(dt |> sf::st_as_sf(wkt=1,crs=crs,...))
+  if(ncol(dt)==1) return(dt |> sf::st_as_sf(wkt=1,crs=crs,remove=remove,...))
 
-  if(is.character(colname)) return(dt |> sf::st_as_sf(wkt=which(colnames(dt)==colname),crs=crs,...))
-  else if (is.numeric(colname)) return(dt |> sf::st_as_sf(wkt=colname,crs=crs,...))
-}
+  switch(is.character(colname)
+         ,stopifnot(colname %in% colnames(dt))
+         ,stopifnot(colname>=1L,colname<=ncol(dt)))
 
-
-
-#### Loading and manipulating OSM data with osmdata ####
-
-#'@title getOSMdata
-#'@name getOSMdata
-#'@description
-#'Facilitated function for working getting data from OSM with osmdata.
-#'
-#'@param bb a bbox
-#'@param k OSM keys
-#'@param val OSM values corresponding to the keys
-#'@param timeout timeout for downloading. increase this value for bigger data sets.
-#'@param memsize the maximum memory to dedicate to the process. increase this value for bigger data sets.
-#'@param ... other parameters to the osmdata::opq function.
-#'@returns
-#'a list of lists containing the results from the overpass query in different spatial formats.
-#'@examples
-#'
-#bb <- osmdata::getbb('marseille')
-#'key <- 'amenity'
-#'val <- 'place_of_worship'
-#'
-#res <- getOSMdata(bb=bb,k=key,val=val)
-#'
-#'@export
-# facilitated osm query with osmdata
-getOSMdata <- function(bb,k, val = "all",timeout = 600,memsize = 3073741824,...) {
-
-  if (all(val != "all")) {
-    osmdata::opq(bbox = bb,timeout = timeout,memsize = memsize,...) |>
-      osmdata::add_osm_feature(key = k
-                               ,value = val
-                               ,key_exact = TRUE
-                               ,value_exact = TRUE
-                               ,match_case = TRUE) |>
-      osmdata::osmdata_sf()
-  } else {
-    osmdata::opq(bbox = bb,timeout = timeout,memsize = memsize,...) |>
-      osmdata::add_osm_feature(key = k
-                               #,value = val
-                               ,key_exact = TRUE
-                               #,value_exact = TRUE
-                               #,match_case = TRUE
-      ) |>
-      osmdata::osmdata_sf()
-  }
-}
-
-#'@title osm_group_points
-#'@name osm_group_points
-#'@description
-#'
-#'Function for grouping the outputs of getOSMdata into a single spatial data frame of points. Useful for extracting polygonal or point like features. Polygons are transformed into their centroids.
-#'
-#'@param d a list of lists as returned by getOSMdata
-#'@param k the keys of interest
-#'@param kofinterest values of interest for the key k
-#'@returns
-#'a spatial data frame with points.
-#'@examples
-#'
-#bb <- osmdata::getbb('marseille')
-#'key <- 'amenity'
-#'val <- 'place_of_worship'
-#'
-#res <- getOSMdata(bb=bb,k=key,val=val)
-#'
-#res <- osm_group_points(res,k='amenity',kofinterest='place_of_worship')
-#'
-#'@export
-osm_group_points <- function(d,k,kofinterest = NULL) {
-
-  if(is.null(kofinterest)) {
-    df <- rbind(d$osm_points[sf::st_is_valid(d$osm_points$geometry),]
-                ,d$osm_polygons[sf::st_is_valid(d$osm_polygons$geometry),] |> sf::st_centroid())
-  } else {
-    data_points <- d$osm_points[d$osm_points[[k]] %in% kofinterest,]
-    data_poly <- d$osm_polygons[d$osm_polygons[[k]] %in% kofinterest,]
-
-    df <- rbind(data_points[sf::st_is_valid(data_points$geometry),]
-                ,data_poly[sf::st_is_valid(data_poly$geometry),] |> sf::st_centroid())
+  if(is.character(colname)) {
+    colname <- which(colnames(dt)==colname)
   }
 
-  return(df[c("osm_id","name",k,"geometry")] |> `names<-`(c("osm_id","name","amenity","geometry")) |>
-           sf::st_as_sf())
+  if(inherits(dt,c('sf'))) {
+    col_sfc <-  sapply(dt,FUN=\(x) if('sfc' %in% class(x)) TRUE else FALSE,USE.NAMES = FALSE) |>
+      which()
+
+    if(col_sfc==colname) {
+      # cat('Trivial\n')
+      return(dt)
+    }
+
+    message('storing the original geometry in the `orig_geom` column')
+    dt$orig_geom <- dt[[col_sfc]] |> sf::st_as_text()
+
+    return(dt |>
+             sf::st_drop_geometry() |>
+             sf::st_as_sf(wkt=colname,crs=crs,remove=remove,...)
+    )
+
+  }
+
+  return(dt |> sf::st_as_sf(wkt=colname,crs=crs,remove=remove,...))
 
 }
-
-
-

@@ -16,52 +16,53 @@
 #'@export
 make_lines <- function(paths, graph, crs = 4326) {
 
-  col_titles <- colnames(graph$coords)
-
-  paths |> lapply(function(x) {graph$coords[match(x,col_titles[1]),.(col_titles[2],col_titles[3])] |> # get the coordinates of the lines
+  paths |> lapply(function(x) {
+    sel_nodes <- match(x,graph$coords[[1]])
+    graph$coords[sel_nodes,c(2,3)] |> # get the coordinates of the lines
       get_lines(to = NULL, crs = crs) # make the lines
   }) |>
+    unlist(recursive = FALSE) |>
     sf::st_sfc(crs = crs) |>
     sf::st_as_sf()
 }
 
 
-#'@title
-#'nearest node
-#'@description
-#'Get the nearest network node to a point with lonlat coordinates.
-#'@param graph the graph of interest
-#'@param point the point of interest, as a sf object, or a vector with c(lat,lon) structure.
-#'@param crs_ the crs of the data
-#'@returns
-#'The node with osmid,x,y variables.
-#'@examples
+#' @title
+#' nearest node
+#' @description
+#' Get the nearest network node to a point with lonlat coordinates.
+#' @param graph the graph of interest
+#' @param point the point of interest, as a sf object, or a vector with c(lat,lon) structure.
+#' @param crs_ the crs of the data
+#' @returns
+#' The node with osmid,x,y variables.
+#' @examples
 #'
 #' # make a small reprex
-#'a <- 1
+#' a <- 1
 #'
-#'@export
+#@export
 nearest_nodes <- \(graph,point,crs_ = 4326){
 
-    res_ <- 12
-
-    coords_ <- graph$coords
-    if(inherits(point,c('sf','sfc'))) point <- sf::st_coordinates(point)
-
-    h3_cell <- h3::geo_to_h3(point,res=res_)
-
-    h3_coords_ <- h3::geo_to_h3(coords_[,c(3,2)],res_)
-
-    while(!(h3_cell %in% h3_coords_) & res_>1) {
-      res_ <- res_-1
-      print(paste0('resolution: ',res_))
-      h3_cell <- h3::geo_to_h3(point,res=res_)
-      h3_coords_ <- h3::geo_to_h3(coords_[,c(3,2)],res_)
-    }
-
-    coords_ <- coords_[which(h3_coords_==h3_cell),]
-
-    return(coords_[which.min(terra::distance(as.matrix(coords_[,.(x,y)]),sf::st_coordinates(point),lonlat=TRUE)),])
+    # res_ <- 12
+    #
+    # coords_ <- graph$coords
+    # if(inherits(point,c('sf','sfc'))) point <- sf::st_coordinates(point)
+    #
+    # h3_cell <- h3::geo_to_h3(point,res=res_)
+    #
+    # h3_coords_ <- h3::geo_to_h3(coords_[,c(3,2)],res_)
+    #
+    # while(!(h3_cell %in% h3_coords_) & res_>1) {
+    #   res_ <- res_-1
+    #   print(paste0('resolution: ',res_))
+    #   h3_cell <- h3::geo_to_h3(point,res=res_)
+    #   h3_coords_ <- h3::geo_to_h3(coords_[,c(3,2)],res_)
+    # }
+    #
+    # coords_ <- coords_[which(h3_coords_==h3_cell),]
+    #
+    # return(coords_[which.min(terra::distance(as.matrix(coords_[,.(x,y)]),sf::st_coordinates(point),lonlat=TRUE)),])
 
 }
 
@@ -70,7 +71,6 @@ in_range <- \(r1,r2) {
   if ((r1[1] <= r2[2]) && (r1[1] >= r2[1]) && (r1[2] <= r2[2]) && (r1[2] >= r2[1])) TRUE
   else FALSE
 }
-
 
 #'@title
 #'fnearest node
@@ -81,6 +81,15 @@ in_range <- \(r1,r2) {
 #'@param nn how many nearest neighbour points to return for each pts.
 #'@param local_crs if the coordinates are lonlat, provide a code for a local crs projection. Look up here: https://epsg.io/about
 #'@param ... other parameters to RANN::nn2()
+#'
+#'@details
+#'The main workflow expected is to have all your data in crs=4326
+#'so when you use this function, you pass a local crs and the function converts automatically.
+#'if no local crs is given, it is assumed that all the data is already projected.
+#'It is difficult to verify if data is in the right crs when it's not an sf object,
+#'so the precautions are mainly left to the user, with a minor test being done by the function.
+#'
+#'
 #'@returns
 #'The corresponding nearest nodes in graph to each pts.
 #'@examples
@@ -100,18 +109,34 @@ in_range <- \(r1,r2) {
 #'@export
 fnearest_nodes <- \(graph,pts,nn=1,local_crs = NULL,...){
 
+  stopifnot(any(is.null(local_crs),is.numeric(local_crs))
+            ,is.numeric(nn)
+            ,nn>=1L
+            ,local_crs>=1L
+            )
+
   if(!is.null(local_crs)){
+
+    stopifnot(sf::st_can_transform(4326,local_crs))
+
+    if (!in_range(range(graph$coords[,2]),c(-180,180)) | !in_range(graph$coords[,3],c(-90,90))) stop('Coordinates of graph nodes not in WGS 84')
+
     node_coords <- graph$coords[,c(2,3)] |>
       sf::st_as_sf(coords=c(1,2),crs=4326) |>
       sf::st_transform(local_crs) |>
       sf::st_coordinates()
+
+    #dealing with the points data
     if(inherits(pts,c('sf','sfc'))){
+      if(sf::st_crs(pts)$input!="WGS 84") message('Non WGS 84 crs detected, converting to local_crs anyway')
       pts <- pts |>
         sf::st_transform(local_crs) |>
         sf::st_coordinates()
 
     } else if (inherits(pts,'matrix')) {
+      stopifnot(ncol(pts)==2)
       pts <- pts |>
+        as.data.frame() |>
         sf::st_as_sf(coords=c(1,2),crs=4326) |>
         sf::st_transform(local_crs) |>
         sf::st_coordinates()
@@ -119,43 +144,30 @@ fnearest_nodes <- \(graph,pts,nn=1,local_crs = NULL,...){
 
   } else {
 
+    message('Assuming the data is in a projected crs')
+
     if (in_range(range(graph$coords[,2]),c(-180,180)) | in_range(graph$coords[,3],c(-90,90))) warning('Suspected lonlat provided without local_crs\n','Function might fail.')
 
-    node_coords <- graph$coords
-    if(inherits(pts,c('sf','sfc'))){
-      pts <- pts |>
-        sf::st_coordinates()
+    node_coords <- graph$coords[,c(2,3)] |>
+      as.matrix()
 
-    } else if (inherits(pts,'matrix')) {
+    if(inherits(pts,c('sf','sfc'))){
+      if(sf::st_crs(pts)$input=="WGS 84") stop('project your pts data or provide local_crs')
       pts <- pts |>
-        sf::st_as_sf(coords=c(1,2),crs=4326) |>
         sf::st_coordinates()
+    } else if (inherits(pts,c('matrix','data.frame'))) {
+      stopifnot(ncol(pts)==2)
+      pts <- pts |>
+        as.matrix()
     }
   }
+
+  if(nrow(node_coords)>1e6) warning('graph very big, might cause failures')
 
   res <- RANN::nn2(data=node_coords,query = pts,k=nn,...)
 
   return(res)
 }
-
-# function(graph, points_data = NULL,return_id = TRUE,...) {
-#   if(is.null(points_data)) stop("Provide sf spatial points to link to the network.")
-#   if(nrow(points_data)>1000) cat('Points data set is big, expect poor performance...')
-#
-#   points_sf <- sf::st_as_sf(points_data,...)
-#
-#   if(inherits(graph, c('data.table','data.frame'))){
-#     node_ind <- sf::st_nearest_feature(points_sf, graph |> sf::st_as_sf(coords=c('x','y'),crs = 4326))
-#     if(return_id) return(graph$osmid[node_ind])
-#     else return(node_ind)
-#
-#   } else if (inherits(graph,'list')){
-#     node_ind <- sf::st_nearest_feature(points_sf, graph$coords |> sf::st_as_sf(coords=c('x','y'),crs = 4326))
-#     if(return_id) return(graph$coords$osmid[node_ind])
-#     else return(node_ind)
-#   }
-#
-# }
 
 
 #'@title
@@ -169,16 +181,19 @@ fnearest_nodes <- \(graph,pts,nn=1,local_crs = NULL,...){
 #'@examples
 #'
 #' # make a small reprex
-#'a <- 1
+#'data("lille_graph")
+#'get_lcc(ways=lille_graph$data)
 #'
 #'@export
 get_lcc <- function(ways, graph_mode = "weak") {
 
   # require("igraph")
 
-  stopifnot("data.table" %in% class(ways), "from" %in% colnames(ways), "to" %in% coltitles(ways))
+  stopifnot(inherits(ways,'data.frame')
+            ,all(c("from","to") %in% colnames(ways))
+            )
 
-  igraph_ways <- igraph::graph_from_data_frame(ways[,.(from,to)],directed = FALSE)
+  igraph_ways <- igraph::graph_from_data_frame(ways[c('from','to')],directed = FALSE)
 
   if(igraph_ways |> igraph::is_connected(mode = graph_mode)) {
     cat('Graph is connected')
@@ -214,18 +229,30 @@ make_network <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
   # crs 4326 is expected
   # it's good if the data has also the variables from and to
   # designating nodes that are connected, but not essential
+
   edges <- edges |>
     data.table::as.data.table()
-  try({nodes <- nodes |>
-    data.table::as.data.table()})
+
+  try({
+    nodes <- nodes |>
+    data.table::as.data.table()
+
+    if(nrow(nodes)==0) nodes <- NULL
+
+    })
 
   edges <- get_lcc(edges)
 
-  graph <- edges[,.(from,to,length)]
+  graph <- edges[,c(1,2,3)]
+
   # we don't have enough info on the edges to make a directed graph, so the assumption
   # is taken that you can cycle in both direction on any edge
-  graph <- graph |> cppRouting::makegraph(directed = directed
-                                          ,coords = nodes[,.(osmid,x,y)])
+
+  graph <- cppRouting::makegraph(df=graph
+                                 ,directed = directed
+                                 ,coords = nodes
+  )
+
   if(simple) {
     # simplifying the graph
     graph <- graph |>
@@ -299,7 +326,7 @@ plot_path <- function(graph, from_id, to_id){
                                  ,to = to_id
   )
 
-  graph$coords[match(p[[1]],osmid),.(x,y)] |>
+  graph$coords[match(p[[1]],osmid),c('x','y')] |>
     get_lines() |>
     sf::st_sfc(crs = 4326) |>
     leaflet::leaflet() |>

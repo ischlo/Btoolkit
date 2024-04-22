@@ -20,6 +20,7 @@ Return the largest connected component of a set of edges to further construct a 
 \examples{
 
 # make a small reprex
-a <- 1
+data("lille_graph")
+get_lcc(ways=lille_graph$data)
 
 }

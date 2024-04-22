@@ -15,12 +15,10 @@ make_poly(limits, crs_ = 4326)
 an sf polygon
 }
 \description{
-Function to make an sf polygon out of 4 numbers representing the limits
+Function to make an sf polygon out of 4 values representing the boundaries
 }
 \examples{
 
 london_bb <- osmdata::getbb("London, UK", limit = 1) |> make_poly()
-
-
 
 }

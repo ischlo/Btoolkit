@@ -4,14 +4,12 @@
 \alias{get_lines}
 \title{get_lines}
 \usage{
-get_lines(from, to = NULL, crs = 4326, by_element = TRUE)
+get_lines(from, to = NULL, crs = 4326)
 }
 \arguments{
 \item{from, to}{a matrix with 2 columns containing X and Y coordinates}
 
 \item{crs}{integer number, the code of the reference system}
-
-\item{by_element}{not used in current implementation}
 }
 \value{
 a sf object with linestrings
