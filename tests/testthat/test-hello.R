@@ -140,7 +140,8 @@ test_that('coord_to_text',{
   # errors
   expect_error(
     coord_to_text(quakes$geom_bla,quakes$lat)
-    )
+    ) |>
+    suppressWarnings()
 
 })
 

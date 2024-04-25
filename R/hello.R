@@ -155,6 +155,7 @@ get_lines <- function(from, to = NULL,crs = 4326) {
 #'@export
 get_bb <- function(area, form = c("rectangular","polygon")){
   form <- match.arg(form)
+
   switch(form
          ,polygon=osmdata::getbb(area,format_out = "sf_polygon",limit = 1) |> sf::st_geometry() |> sf::st_as_text()
          ,rectangular=osmdata::getbb(area, limit = 1) |> make_poly() |> sf::st_geometry() |> sf::st_as_text()
@@ -332,12 +333,18 @@ nlapply <- function(l,fun,simplify=FALSE,...){
 #', taking a character vector of wkt and turning it into a sf geometry column.
 #'One especially relevant use case is when a data table has multiple columns that can potentially be used as geometries,
 #'for example you might have polygons representing shapes, but also their centroids all in one table.
+#'@details
+#'If an sf object is passed as argument with the intent of turning a wkt column into geometry, then
+#'the old geometry column is saved as wkt in a new column called `orig_geom`
+#'This function proves relevant as well when interacting with a database that contains geometries.
+#'They can be easily exported as WKT and then converted back in the environment if needed.
+#'
 #'@param dt a data.frame, data.table, tibble, sf data.frame ...
-#'@param colname character the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.
+#'@param colname character/integer the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.
 #'@param crs integer the crs to convert into
-#'@param remove boolean. whether to remove or not the column that will transformed into geometry.
-#'@param ... Other otional argunats to pass to sf::st_as_sf
-#'@returns a sf data.frame with the same number of columns as the input and with the specified column used a geometry.
+#'@param remove boolean. whether to remove or not the column that will be transformed into geometry.
+#'@param ... Other optional arguments to pass to sf::st_as_sf
+#'@returns a sf data.frame with the specified column used a geometry.
 #'@examples
 #' y <- rnorm(100,mean = 51,sd=1)
 #' x <- rnorm(100)
@@ -352,16 +359,17 @@ as_geo <- function(dt,colname='geom_wkt', crs = 4326,remove=FALSE,...){
   if(inherits(dt,'character')){
     # message('provided a character vector, expected to contain WKT')
     return(tryCatch(dt |> data.table::as.data.table() |> sf::st_as_sf(wkt=1,crs=crs,remove=remove,...)
-                    ,error=function(e) cat('Failed, provide a vector containing wkt geometries.\n')
-                    ,warning = function(w) cat(w,'\n')))
+                    ,error=function(e) cli::cli_alert_danger('Failed, provide a vector containing wkt geometries.\n')
+                    ,warning = function(w) cli::cli_alert_warning(w)))
   }
 
   # if the provided data set contains just one column, don't bother requiring colname.
   if(ncol(dt)==1) return(dt |> sf::st_as_sf(wkt=1,crs=crs,remove=remove,...))
 
   switch(is.character(colname)
-         ,stopifnot(colname %in% colnames(dt))
-         ,stopifnot(colname>=1L,colname<=ncol(dt)))
+         ,stopifnot('Provide a valid column name'=colname %in% colnames(dt))
+         ,stopifnot('Provide a valid column number'=colname>=1L,colname<=ncol(dt))
+         )
 
   if(is.character(colname)) {
     colname <- which(colnames(dt)==colname)
@@ -376,7 +384,7 @@ as_geo <- function(dt,colname='geom_wkt', crs = 4326,remove=FALSE,...){
       return(dt)
     }
 
-    message('storing the original geometry in the `orig_geom` column')
+    cli::cli_alert_info('storing the original geometry in the `orig_geom` column')
     dt$orig_geom <- dt[[col_sfc]] |> sf::st_as_text()
 
     return(dt |>

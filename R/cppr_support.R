@@ -109,10 +109,9 @@ in_range <- \(r1,r2) {
 #'@export
 fnearest_nodes <- \(graph,pts,nn=1,local_crs = NULL,...){
 
-  stopifnot(any(is.null(local_crs),is.numeric(local_crs))
-            ,is.numeric(nn)
-            ,nn>=1L
-            ,local_crs>=1L
+  stopifnot('provide a valid nearest neighbours value'=nn>=1L
+            ,'provide a valid crs code'=any(is.null(local_crs),local_crs>=1L)
+            ,'provide a valid crs code'=any(is.null(local_crs),is.numeric(local_crs))
             )
 
   if(!is.null(local_crs)){
@@ -222,7 +221,14 @@ get_lcc <- function(ways, graph_mode = "weak") {
 #'@examples
 #'
 #' # make a small reprex
-#'a <- 1
+#' data("nodes")
+#' data("segments")
+#'
+#' graph <- make_network(edges=segments
+#' ,nodes=nodes
+#' ,simple=TRUE
+#' ,directed=FALSE)
+#'
 #'
 #'@export
 make_network <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
@@ -240,8 +246,10 @@ make_network <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
 
     if(nrow(nodes)==0) {
       nodes <- NULL
+      cli::cli_alert('Building graph without nodes information')
     } else {
       nodes <- nodes[!duplicated(id),]
+      cli::cli_alert_info('Including nodes')
     }
 
     })
@@ -253,6 +261,8 @@ make_network <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
   # we don't have enough info on the edges to make a directed graph, so the assumption
   # is taken that you can cycle in both direction on any edge
 
+  stopifnot(nrow(graph)>0)
+
   graph <- cppRouting::makegraph(df=graph
                                  ,directed = directed
                                  ,coords = nodes
@@ -260,11 +270,12 @@ make_network <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
 
   if(simple) {
     # simplifying the graph
+    cli::cli_alert('Simplifying graph')
     graph <- graph |>
       cppRouting::cpp_simplify(rm_loop = TRUE
                                ,iterate = FALSE) # iterating may cause changes that we don't want
   }
-
+  cli::cli_alert_success('Graph created')
   graph
 }
 
@@ -365,7 +376,7 @@ usethis::use_data(cppr,overwrite = TRUE)
 #'
 #' cppr list of functions.
 #'
-#'@format ## cppr
+#'@format ## `cppr`
 #'This is an attempt to adapt a module approach to a set of functions in R, inspired by this feature in python.
 #'This is a list object imported with the package and containing support functions for the cppr package.
 #'
@@ -377,7 +388,7 @@ usethis::use_data(cppr,overwrite = TRUE)
 #'
 #' cppRouting graph for examples.
 #'
-#'@format ## lille_graph
+#'@format ## `lille_graph`
 #' A graph constructed from OSM data with the cppRouting package.
 #'
 #'@source Ivann Schlosser, 2023
@@ -388,7 +399,7 @@ usethis::use_data(cppr,overwrite = TRUE)
 #'
 #' lille amenities
 #'
-#'@format ## lille_amenities
+#'@format ## `lille_amenities`
 #'A sample of OSM amenities from the city of Lille
 #'
 #'@source Ivann Schlosser, 2023
@@ -396,21 +407,21 @@ usethis::use_data(cppr,overwrite = TRUE)
 
 
 #'
+#'nodes
 #'
-#'
-#'@format ## nodes
+#'@format ## `nodes`
 #' A data frame of nodes to be used with the data set of segments to test the cppr related functions
 #'
-#'@source Ivann Schlosser, 2023
+#'@source OpenStreetMap, 2024
 "nodes"
 
 
 #'
+#'segments
 #'
-#'
-#'@format ## segments
+#'@format ## `segments`
 #' A data frame of segments to be used with the data set of nodes to test the cppr related functions
 #'
-#'@source Ivann Schlosser, 2023
+#'@source OpenStreetMap, 2024
 "segments"
 

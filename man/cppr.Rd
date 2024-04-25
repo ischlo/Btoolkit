@@ -5,7 +5,7 @@
 \alias{cppr}
 \title{cppr list of functions.}
 \format{
-\subsection{cppr}{
+\subsection{\code{cppr}}{
 
 This is an attempt to adapt a module approach to a set of functions in R, inspired by this feature in python.
 This is a list object imported with the package and containing support functions for the cppr package.

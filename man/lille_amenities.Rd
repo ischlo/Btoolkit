@@ -5,7 +5,7 @@
 \alias{lille_amenities}
 \title{lille amenities}
 \format{
-\subsection{lille_amenities}{
+\subsection{\code{lille_amenities}}{
 
 A sample of OSM amenities from the city of Lille
 }

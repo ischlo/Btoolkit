@@ -110,13 +110,15 @@ test_that('fnearest_node',{
   expect_error(
     fnearest_nodes(graph = lille_graph
                    ,pts = lille_amenities |> samp_dt(10))
-  )
+  ) |>
+    suppressWarnings()
 
   # bad pts data with or without loc_crs
   expect_error(
     fnearest_nodes(graph = lille_graph
                    ,pts = cbind(sample_amen,rep_len(0,nrow(sample_amen))))
-  )
+  ) |>
+    suppressWarnings()
 
   expect_error(
     fnearest_nodes(graph = lille_graph
@@ -143,8 +145,8 @@ test_that('fnearest_node',{
   expect_error(
     fnearest_nodes(graph = lille_graph
                    ,pts = sample_amen
-                   ,local_crs = loc_crs
-                   ,crs='abra')
+                   ,local_crs = 'abra'
+                   )
   )
 
   expect_error(
@@ -179,6 +181,13 @@ test_that('get_lcc',{
     ,class = 'data.frame'
   )
 
+  # return is non-empty
+  expect_true(nrow(get_lcc(ways = lille_graph$data))>0)
+
+  # return is non-empty
+  expect_true(nrow(get_lcc(ways=segments))>0)
+
+
   # errors
 
   expect_error(
@@ -199,8 +208,8 @@ test_that('make_network',{
   data("nodes")
   data("segments")
 
-  ways <- lille_graph$data
-  nodes <- lille_graph$coords
+  # ways <- lille_graph$data
+  # nodes <- lille_graph$coords
 
   # success
   expect_type(

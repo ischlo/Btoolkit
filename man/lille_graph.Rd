@@ -5,7 +5,7 @@
 \alias{lille_graph}
 \title{cppRouting graph for examples.}
 \format{
-\subsection{lille_graph}{
+\subsection{\code{lille_graph}}{
 
 A graph constructed from OSM data with the cppRouting package.
 }

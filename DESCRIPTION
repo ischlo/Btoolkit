@@ -21,7 +21,8 @@ Imports:
     igraph,
     cppRouting,
     leaflet,
-    RANN
+    RANN,
+    cli
 LinkingTo: 
     Rcpp,
     RcppArmadillo
