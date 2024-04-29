@@ -9,16 +9,16 @@ as_geo(dt, colname = "geom_wkt", crs = 4326, remove = FALSE, ...)
 \arguments{
 \item{dt}{a data.frame, data.table, tibble, sf data.frame ...}
 
-\item{colname}{character the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.}
+\item{colname}{character/integer the column name or column number. If providing only a single column with the values to turn into geometries, just leave as is.}
 
 \item{crs}{integer the crs to convert into}
 
-\item{remove}{boolean. whether to remove or not the column that will transformed into geometry.}
+\item{remove}{boolean. whether to remove or not the column that will be transformed into geometry.}
 
-\item{...}{Other otional argunats to pass to sf::st_as_sf}
+\item{...}{Other optional arguments to pass to sf::st_as_sf}
 }
 \value{
-a sf data.frame with the same number of columns as the input and with the specified column used a geometry.
+a sf data.frame with the specified column used a geometry.
 }
 \description{
 This function bridges the packages sf and data.table to build easier workflows using both.
@@ -27,6 +27,12 @@ It is also designed to work whithin the j part of a data.table workflow
 , taking a character vector of wkt and turning it into a sf geometry column.
 One especially relevant use case is when a data table has multiple columns that can potentially be used as geometries,
 for example you might have polygons representing shapes, but also their centroids all in one table.
+}
+\details{
+If an sf object is passed as argument with the intent of turning a wkt column into geometry, then
+the old geometry column is saved as wkt in a new column called \code{orig_geom}
+This function proves relevant as well when interacting with a database that contains geometries.
+They can be easily exported as WKT and then converted back in the environment if needed.
 }
 \examples{
 y <- rnorm(100,mean = 51,sd=1)

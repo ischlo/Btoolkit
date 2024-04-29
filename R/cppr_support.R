@@ -204,7 +204,7 @@ get_lcc <- function(ways, graph_mode = "weak") {
   vert_ids <- igraph::V(igraph_ways)[nodes_comp$membership == which.max(nodes_comp$csize)] |>
     attr('names')
 
-  return(ways[from %in% vert_ids & to %in% vert_ids,])
+  return(ways[ways$from %in% vert_ids & ways$to %in% vert_ids,])
 }
 
 
@@ -249,7 +249,7 @@ make_network <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
       cli::cli_alert('Building graph without nodes information')
     } else {
       nodes <- nodes[!duplicated(id),]
-      cli::cli_alert_info('Including nodes')
+      cli::cli_alert('Including nodes')
     }
 
     })

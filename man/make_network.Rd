@@ -24,6 +24,13 @@ From a data frame of edges and nodes construct a cppRouting graph.
 \examples{
 
 # make a small reprex
-a <- 1
+data("nodes")
+data("segments")
+
+graph <- make_network(edges=segments
+,nodes=nodes
+,simple=TRUE
+,directed=FALSE)
+
 
 }
