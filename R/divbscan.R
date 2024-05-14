@@ -15,14 +15,14 @@
 #'
 #'
 #'@export
-entropy_iso <- function(d, iso, by_='amenity',cor_num = 1){
+entropy_iso <- function(d, iso, by_='amenity',cor_num = 2){
 
   # make sure that the isochrones data is perfectly alligned by row with the data.
   int <- sf::st_intersects(iso, d)
   # once we have made the intersection, we need to check that they all intersect at least with their own amenity
   # this is not the case every time because some amenities are in locations with no roads around
   # while the isochrones uses the underlyinig road network to build the areas.
-  checks <- map(int,length) |> unlist()
+  checks <- purrr::map(int,length) |> unlist()
   # when the intersection is zero, we impose that there is just the amenity for which the isochrone is computed
   bad_values <- which(checks == 0)
   # put the index of the amenity itself in the intersection
@@ -67,22 +67,6 @@ neighbourhoods <- function(data,iso, cores = 1) {
   # put the index of the amenity itself in the intersectio
   int[bad_values] <- bad_values
   data$ind <- 1:nrow(data)
-
-  # registerDoParallel(cores)
-  # max <- foreach(i = 1:nrow(data), .combine = c) %dopar% {
-  #   nb <- data[int[[i]],]
-  #   indice <- i
-  #   #osmid <- data$osm_id[i]
-  #   m <- nb$ind[which(max(nb$entropy) == nb$entropy)[1]]
-  #   while(m != indice) {
-  #     #nb <- data[int[[which(data$osm_id == m)]],]
-  #     nb <- data[int[[m]],]
-  #     indice <- m
-  #     m <- nb$ind[which(max(nb$entropy) == nb$entropy)[1]]
-  #   }
-  #   m
-  # }
-  # stopImplicitCluster()
 
   max <- mcmapply(1:length(int),int, mc.cores = cores,FUN = \(i,val) {
     nb <- data[val,]
