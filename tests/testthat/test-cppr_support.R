@@ -34,8 +34,6 @@ test_that('fnearest_node',{
 
   loc_crs <- 27561
 
-
-
   sample_amen <- lille_amenities |>
     samp_dt(10) |>
     sf::st_coordinates()

@@ -209,6 +209,7 @@ overlap <- function(x,y, frac = TRUE){
 #'@returns a vector of logical values,
 #' with each value corresponding to the comparison between the elements of the entered vectors.
 #'@examples
+#'
 #'x = c(1,2,3,4,5)
 #'y = c(1,3,2,4,5)
 #'

@@ -56,46 +56,60 @@ fdistance <- function(coord1,coord2 = NULL,projected=FALSE,one_to_one = FALSE,..
             )
 
   if(inherits(coord1,'character') & !missing(...)) {
-    coord1 <- sf::st_as_sf(data.table::data.table(wkt=coord1),...,wkt=1) |> sf::st_coordinates()
+
+    # message("case 1")
+
+    coord1 <- sf::st_as_sf(data.table::data.table(wkt=coord1)
+                           ,...
+                           # ,crs=4326
+                           ,wkt=1) |> sf::st_coordinates()
+
   } else if (inherits(coord1,'character') & missing(...)) stop('provide crs for WKT in coord1.')
 
   if(inherits(coord2,'character') & !missing(...)) {
-    coord2 <- sf::st_as_sf(data.table::data.table(wkt=coord2),...,wkt=1) |> sf::st_coordinates()
+
+    # message("case 2")
+
+    coord2 <- sf::st_as_sf(data.table::data.table(wkt=coord2)
+                           ,...
+                           # ,crs=4326
+                           ,wkt=1) |> sf::st_coordinates()
+
   } else if (inherits(coord2,'character') & missing(...)) stop('provide crs for WKT in coord2.')
 
 
-  if(inherits(coord1,c('data.frame','data.table'))){coord1 <- as.matrix(coord1)}
-  if(inherits(coord2,c('data.frame','data.table'))){coord2 <- as.matrix(coord2)}
+  if(inherits(coord1,c('sf',"sfc"))) {coord1 <- sf::st_geometry(coord1) |> sf::st_coordinates()}
+  if(inherits(coord2,c('sf',"sfc"))) {coord1 <- sf::st_geometry(coord2) |> sf::st_coordinates()}
 
-  if(inherits(coord1,'sf')) coord1 <- sf::st_geometry(coord1) |> sf::st_coordinates()
-  if(inherits(coord2,'sf')) coord1 <- sf::st_geometry(coord2) |> sf::st_coordinates()
+  if(inherits(coord1,c('data.frame','data.table'))) {coord1 <- as.matrix(coord1)}
+  if(inherits(coord2,c('data.frame','data.table'))) {coord2 <- as.matrix(coord2)}
 
   if(inherits(coord1[[1]],'character')) {
-    cat('detected WKT in coord1.\n')
+    cli::cli_alert_info('detected WKT in coord1.\n')
     if(!missing(...)){
       coord1 <- sf::st_as_sf(data.table::data.table(wkt=coord1),...,wkt=1) |> sf::st_coordinates()
     }else{
-      warning('no crs provided, assuming 4326')
+      cli::cli_alert_warning('no crs provided, assuming 4326')
       coord1 <- sf::st_as_sf(data.table::data.table(wkt=coord1),crs=4326,wkt=1) |> sf::st_coordinates()
     }
   }
   if(inherits(coord2[[1]],'character')) {
-    cat('detected WKT in coord2.\n')
+    cli::cli_alert_info('detected WKT in coord2.\n')
     if(!missing(...)){
       coord2 <- sf::st_as_sf(data.table::data.table(wkt=coord2),...,wkt=1) |> sf::st_coordinates()
     }else{
-      warning('no crs provided, assuming 4326')
+      cli::cli_alert_warning('no crs provided, assuming 4326')
       coord2 <- sf::st_as_sf(data.table::data.table(wkt=coord2),crs=4326,wkt=1) |> sf::st_coordinates()
     }
   }
 
   if(all(one_to_one,!is.null(coord2),nrow(coord1)!=nrow(coord2))) { stop("Dimensions of the parameters don't match")}
 
-  if (any(ncol(coord1) > 2, ncol(coord2) > 2)) {print("Using the first two colunms as coordinates")}
+  if (any(ncol(coord1) > 2, ncol(coord2) > 2)) {cli::cli_alert_info("Using the first two colunms as coordinates")}
 
-  coord1 <- as.matrix(coord1[,c(1,2)])
+  # coord1 <- as.matrix(coord1[,c(1,2)])
 
-  if(!is.null(coord2)) coord2 <- as.matrix(coord2[,c(1,2)])
+  # if(!is.null(coord2)) coord2 <- as.matrix(coord2[,c(1,2)])
 
   if(is.null(coord2) & !projected) {
     return(gc_distance_mat_cpp(coord1 = coord1,coord2 = coord1))
@@ -116,28 +130,6 @@ fdistance <- function(coord1,coord2 = NULL,projected=FALSE,one_to_one = FALSE,..
   if(!projected & !one_to_one){
     return(gc_distance_mat_cpp(coord1 = coord1,coord2 = coord2))
   }
-
-  # if(one_to_one & is.null(coord2)) {
-  #   switch (coords,
-  #           "projected" = distance_pair_cpp(coord1 = coord1,coord2 = coord1)
-  #           ,"unprojected" = gc_distance_pair_cpp(coord1 = coord1,coord2 = coord1)
-  #   )
-  # } else if (one_to_one & !is.null(coord2)){
-  #   switch (coords,
-  #           "projected" = distance_pair_cpp(coord1 = coord1,coord2 = coord2)
-  #           ,"unprojected" = gc_distance_pair_cpp(coord1 = coord1,coord2 = coord2)
-  #   )
-  # } else if(!one_to_one & is.null(coord2)) {
-  #   switch (coords,
-  #           "projected" = distance_mat_cpp(coord1 = coord1,coord2 = coord1)
-  #           ,"unprojected" = gc_distance_mat_cpp(coord1 = coord1,coord2 = coord1)
-  #   )
-  # } else if (!one_to_one & !is.null(coord2)) {
-  #   switch (coords,
-  #           "projected" = distance_mat_cpp(coord1 = coord1,coord2 = coord2)
-  #           ,"unprojected" = gc_distance_mat_cpp(coord1 = coord1,coord2 = coord2)
-  #   )
-  # }
 
 }
 
