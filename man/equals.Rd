@@ -17,6 +17,7 @@ with each value corresponding to the comparison between the elements of the ente
 vectorized equal function to use in pipes. Useful for comparing values for summary statistics for example
 }
 \examples{
+
 x = c(1,2,3,4,5)
 y = c(1,3,2,4,5)
 

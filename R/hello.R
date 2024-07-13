@@ -68,17 +68,18 @@ factor_to_character <- function(dat) {
 #'@param crs integer number, the code of the reference system
 #'
 #'@returns a sf object with linestrings
-#'@example
+#
+#'@examples
 #'
 #'from <- matrix(data=c(-0.13619,51.52203
 #'                      ,-0.13064,51.52275)
 #'               ,ncol=2
-#'               ,by_row=TRUE)
+#'               ,byrow=TRUE)
 #'
 #'work_to_lunch <- get_lines(from=from)
-#'tmap::tmap_mode('view)
-#'tmap::qtm(work_to_lunch)
-#'
+#tmap::tmap_mode('view')
+#tmap::qtm(work_to_lunch)
+#'plot(work_to_lunch)
 #'@export
 get_lines <- function(from, to = NULL,crs = 4326) {
   # check that from and to are points as well
@@ -279,18 +280,18 @@ samp_dt <- function(dt, weight) {
 }
 
 
-#'@title index_html
-#'@description
-#'Render a markdown file into a html file called index.html
-#', for efficient creation of html pages directly publishable to github pages for example.
-#'@example # rstudioapi::getSourceEditorContext()$path
-#'@returns it is a void function that produces as output the html
-#' file in the same directory in which the rmarkdown file is.
-#'@export
-index_html <- function() {
-  cat(rstudioapi::getSourceEditorContext()$path)
-  rmarkdown::render(input = rstudioapi::getSourceEditorContext()$path,output_file="index.html")
-}
+#@title index_html
+#@description
+#Render a markdown file into a html file called index.html
+#, for efficient creation of html pages directly publishable to github pages for example.
+#@example 1 # rstudioapi::getSourceEditorContext()$path
+#@returns it is a void function that produces as output the html
+# file in the same directory in which the rmarkdown file is.
+#@export
+# index_html <- function() {
+#   cat(rstudioapi::getSourceEditorContext()$path)
+#   rmarkdown::render(input = rstudioapi::getSourceEditorContext()$path,output_file = "index.html")
+# }
 
 
 #'@title nlapply

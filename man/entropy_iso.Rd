@@ -4,7 +4,7 @@
 \alias{entropy_iso}
 \title{entropy_iso}
 \usage{
-entropy_iso(d, iso, by_ = "amenity", cor_num = 1)
+entropy_iso(d, iso, by_ = "amenity", cor_num = 2)
 }
 \arguments{
 \item{d}{a data set of spatial features with a categorical variable}

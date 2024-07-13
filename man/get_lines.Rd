@@ -20,3 +20,13 @@ If the to variable is null, then it is assumed that from
 is a matrix where each row contains coordinates of a points
 the line is then built by connecting each point in the order of the rows
 }
+\examples{
+
+from <- matrix(data=c(-0.13619,51.52203
+                     ,-0.13064,51.52275)
+              ,ncol=2
+              ,byrow=TRUE)
+
+work_to_lunch <- get_lines(from=from)
+plot(work_to_lunch)
+}
