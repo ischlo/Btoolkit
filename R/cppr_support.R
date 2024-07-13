@@ -18,7 +18,8 @@ make_lines <- function(paths, graph, crs = 4326) {
 
   paths |> lapply(function(x) {
     sel_nodes <- match(x,graph$coords[[1]])
-    graph$coords[sel_nodes,c(2,3)] |> # get the coordinates of the lines
+    if(length(sel_nodes)<=1) NULL
+    else graph$coords[sel_nodes,c(2,3)] |> # get the coordinates of the lines
       get_lines(to = NULL, crs = crs) # make the lines
   }) |>
     unlist(recursive = FALSE) |>
