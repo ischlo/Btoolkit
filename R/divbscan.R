@@ -10,12 +10,8 @@
 #'@param cor_num how many cores to use for greater speed.
 #'@returns a data frame with columns containing the various variables computed, including the entropy, the size, the ubiquity of the cluster
 #@example
-#'
-#'
-#'
-#'
 #'@export
-entropy_iso <- function(d, iso, by_='amenity',cor_num = 2){
+entropy_iso <- function(d, iso, by_='amenity', cor_num = 2){
 
   # make sure that the isochrones data is perfectly alligned by row with the data.
   int <- sf::st_intersects(iso, d)
@@ -30,28 +26,37 @@ entropy_iso <- function(d, iso, by_='amenity',cor_num = 2){
   d <- data.table::as.data.table(d)
 
   entropy <- parallel::mclapply(int, mc.cores = cor_num, FUN = \(i) {
-    if(all(i!=-1)){
-      counted <- d[i,.N,by=by_]
+    if (all(i != -1)) {
+      counted <- d[i,.N,by = by_]
       p <- counted$N/sum(counted$N)
-      # ubiq <- nrow(counted)
-      e <- c('entropy'=-sum(p*log(p))
-             ,'size'=sum(counted$N)
-             # ,'ubiq'=ubiq
+      ubiq <- nrow(counted)
+      e <- c('entropy' = -sum(p*log(p))
+             ,'size' = sum(counted$N)
+             ,'ubiq' = ubiq
              )
       return(e)
     } else {
-      return(c('entropy'=NA,'size'=0
-               # ,'ubiq'=0
+      return(c('entropy' = NA,'size' = 0
+               ,'ubiq' = 0
                ))
     }
   })
   data.frame(matrix(entropy |> unlist(), ncol = 2, byrow = TRUE)) |> `colnames<-`(c('entropy','size'
-                                                                                    # ,'ubiquity'
+                                                                                    ,'ubiquity'
                                                                                     ))
 }
 
 
-
+#'@title
+#'neighbourhoods
+#'@description
+#'From a set of local maxima and their respective isodistance areas, iterates towards local 'super-maxima' using the intersection of the isodistances with the maxima.
+#'@param data local maxima as spatial points
+#'@param iso the accessibility areas for each local maxima or area of interest, isodists typically.
+#'@param cor_num how many cores to use for greater speed.
+#'@returns a vector containing the index of the 'super-maximum' for each local maxima.
+#@example
+#'@export
 neighbourhoods <- function(data,iso, cores = 1) {
   # pass data here in 27700 CRS
   # make sure that the isochrones data is perfectly alligned by row with the data.
@@ -60,7 +65,7 @@ neighbourhoods <- function(data,iso, cores = 1) {
   # , we need to check that they all intersect at least with their own amenity
   # this is not the case every time because some amenities are in locations with no roads around
   # while the isochrones uses the underlyinig road network to build the areas.
-  checks <- map(int,length) |>unlist() |>tibble()
+  checks <- map(int,length) |> unlist() |> tibble()
   # when the intersection is zero, we impose that
   # there is just the amenity for which the isochrone is computed
   bad_values <- which(checks[[1]] == 0)
@@ -74,20 +79,20 @@ neighbourhoods <- function(data,iso, cores = 1) {
     #osmid <- data$osm_id[i]
     m <- nb$ind[which(max(nb$entropy) == nb$entropy)[1]]
     it <- 0
-    while(m != indice & (it<100)) {
+   while (m != indice & (it < 100)) {
       #nb <- data[int[[which(data$osm_id == m)]],]
       nb <- data[int[[m]],]
       indice <- m
       m <- nb$ind[which(max(nb$entropy) == nb$entropy)[1]]
-      it <- it+1
+      it <- it + 1
     }
     m
   })
   max
 }
 
-divbscan <- list('entropy_iso'=entropy_iso
-                 ,'neighbourhoods'=neighbourhoods)
+divbscan <- list('entropy_iso' = entropy_iso
+                 ,'neighbourhoods' = neighbourhoods)
 
 
 usethis::use_data(divbscan,overwrite = TRUE)
